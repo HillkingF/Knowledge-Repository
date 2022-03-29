@@ -1,2 +1,6 @@
 # Knowledge Repository
- Learning records.
+ Learning records.s
+
+------
+
+- Redis
