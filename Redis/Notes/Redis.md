@@ -306,14 +306,20 @@ Redis免费+开源！是当下最热门的Nosql技术之一！也被人们称之
 
 **注意：windows在github上下载（停更很久了）**
 
-**Redis推荐都是在Linux服务器上搭建的，我们基于Linux学习**
-
-#### 2.2 Windows安装
+**Redis推荐都是在Linux服务器上搭建的，我们基于Linux学习——mac电脑**
 
 
 
-1. 下载地址：https://github.com/dmajkic/redis/releases
-2. 下载完毕得到压缩包
+
+
+### 2.2 Windows安装
+
+
+
+1. 下载地址：https://github.com/dmajkic/redis/...   (安装包链接经常改变，进入官网仔细寻找。此时我找到的位置如下：https://github.com/dmajkic/redis/tags)
+   <img src="img/2DownloadPlaceOfRedis.png" alt="img" style="zoom:67%;" />
+
+2. 下载完毕得到压缩
 3. 解压到环境目录下即可
 4. 开启Redis，双击运行 `redis-server.exe`
 5. 使用Redis客户端 `redis-cli.exe` 来连接Redis
@@ -321,21 +327,46 @@ Redis免费+开源！是当下最热门的Nosql技术之一！也被人们称之
 
 
 
-#### 2.3 Linux安装
+### 2.3 Linux安装
 
+> 方式1：docker安装
 
+使用docker安装redis镜像
 
-1. 官网下载 `redis-6.0.10.tar.gz`
-2. 解压Redis安装包。
-3. 进入目录，可以看到Redis的配置文件
-   `redis.conf`
-4. 基本环境安装
-
-```bash
-yum install gcc-c++
-make
-make install # 安装确认
+```shell
+docker pull redis         # 下载最新版本
+docker pull redis:6.2.6   # 下载版本6.2.6
 ```
+
+> 方式2：手动安装
+
+1. 官网下载 https://download.redis.io/releases/  `redis-6.2.6.tar.gz  `
+
+2. 解压Redis安装包，并放到全局环境目录下`/Users/hillking/Environment/redis-6.2.6`。
+
+3. 进入目录，可以看到Redis的配置文件`redis.conf`
+
+4. 基本环境安装：终端进入`redis-6.2.6`目录，然后安装基本环境gcc
+
+   ```bash
+   yum install gcc-c++
+   make
+   make install # 安装确认
+   ```
+
+   注意：mac上没有yum命令，首先安装yum。在终端依次输入以下命令：
+
+   ```bash
+   (base) hillking@fengwennideMacBook-Pro redis-6.2.6 % /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ......
+   brew install wget
+   brew install yum
+   
+   ```
+
+   curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install >> brew_install
+
+5. 然后
 
 1. 默认安装路径 `/usr/local/bin`
 2. 将Redis配置文件复制到安装目录下
@@ -381,7 +412,7 @@ shutdown
 
 
 
-#### 2.4 性能测试
+### 2.4 性能测试
 
 
 
@@ -396,7 +427,7 @@ redis-benchmark -h localhost -p 6379 -c 100 -n 100000
 
 
 
-#### 2.5 基础知识
+### 2.5 基础知识
 
 
 
@@ -445,7 +476,13 @@ Redis是C语言写的，达到100000+的QPS，不比Memcache差
 
 
 
-### 3 五大数据类型
+
+
+
+
+------
+
+## 3 五大数据类型
 
 
 
@@ -1035,7 +1072,13 @@ OK
 
 
 
-### 4 三种特殊数据类型
+
+
+
+
+------
+
+## 4 三种特殊数据类型
 
 
 
@@ -1323,7 +1366,9 @@ OK
 
 
 
-### 5 事务
+------
+
+## 5 事务
 
 
 
@@ -1552,7 +1597,9 @@ QUEUED
 
 
 
-### 6 Jedis
+------
+
+## 6 Jedis
 
 
 
@@ -1841,7 +1888,11 @@ try {
 
 
 
-### 7 SpringBoot整合
+
+
+------
+
+## 7 SpringBoot整合
 
 
 
@@ -2599,7 +2650,13 @@ class Redis02SpringbootApplicationTests {
 
 
 
-### 8 Redis.conf 详解
+
+
+
+
+------
+
+## 8 Redis.conf 详解
 
 
 
@@ -2739,7 +2796,11 @@ appendfsync everysec  # 每秒执行一次sync，可能会丢失这1s的数据
 
 
 
-### 9 Redis持久化
+
+
+------
+
+## 9 Redis持久化
 
 
 
@@ -2962,7 +3023,11 @@ appendfsync everysec  # 每秒执行一次sync，可能会丢失这1s的数据
 
 
 
-### 10 Redis 发布订阅
+
+
+------
+
+## 10 Redis 发布订阅
 
 
 
@@ -3067,7 +3132,11 @@ Pub/Sub 从字面上理解就是发布（Publish）与订阅（Subscribe），�
 
 
 
-### 11 Redis 主从复制
+
+
+------
+
+## 11 Redis 主从复制
 
 
 
@@ -3374,7 +3443,11 @@ redis-sentinel conf/ sentinel.conf
 
 
 
-### 12 Redis 缓存穿透和雪崩
+
+
+------
+
+## 12 Redis 缓存穿透和雪崩
 
 
 
