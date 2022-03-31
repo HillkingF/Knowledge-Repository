@@ -314,20 +314,25 @@ Redis免费+开源！是当下最热门的Nosql技术之一！也被人们称之
 
 ### 2.2 Windows安装
 
-
+#### 2.2.1 安装
 
 1. 下载地址：https://github.com/dmajkic/redis/...   (安装包链接经常改变，进入官网仔细寻找。此时我找到的位置如下：https://github.com/dmajkic/redis/tags)
    <img src="img/2DownloadPlaceOfRedis.png" alt="img" style="zoom:67%;" />
 
 2. 下载完毕得到压缩
 3. 解压到环境目录下即可
-4. 开启Redis，双击运行 `redis-server.exe`
-5. 使用Redis客户端 `redis-cli.exe` 来连接Redis
-6. 输入 `ping` 显示 `PONG`，则连接成功
+
+#### 2.2.2 启动
+
+2. 开启Redis，双击运行 `redis-server.exe`
+3. 使用Redis客户端 `redis-cli.exe` 来连接Redis
+4. 输入 `ping` 显示 `PONG`，则连接成功
 
 
 
-### 2.3 Linux安装
+### 2.3 Linux安装及使用?
+
+#### 2.3.1 安装
 
 > 方式1：docker安装
 
@@ -342,7 +347,7 @@ docker pull redis:6.2.6   # 下载版本6.2.6
 
 1. 官网下载 https://download.redis.io/releases/  `redis-6.2.6.tar.gz  `
 
-2. 解压Redis安装包，并放到全局环境目录下`/Users/hillking/Environment/redis-6.2.6`。
+2. 解压Redis安装包，并放到全局环境目录下`/Users/hillking/Environment/redis-6.2.6`。?
 
 3. 进入目录，可以看到Redis的配置文件`redis.conf`
 
@@ -354,21 +359,61 @@ docker pull redis:6.2.6   # 下载版本6.2.6
    make install # 安装确认
    ```
 
-5. 然后
+5. redis默认安装路径 `/usr/local/bin`
 
-1. 默认安装路径 `/usr/local/bin`
-2. 将Redis配置文件复制到安装目录下
-3. Redis默认不是后台启动的，修改配置文件
 
-```bash
-daemonize yes
+
+#### 2.3.2 启动
+
+**默认的启动：**
+
+默认的启动方式依赖于原始配置文件redis.conf，配置文件中默认非后台启动服务。
+
+此时默认的启动命令有：
+
+```shell
+redis-server
+......
 ```
 
-1. 启动Redis服务！
 
-```bash
-redis-server redis.conf  # 通过指定的配置文件启动Redis服务
-```
+
+**自定义启动：**
+
+可以修改redis配置文件使其后台启动。修改配置文件及启动的过程如下：
+
+1. 将Redis配置文件复制到安装目录下
+
+   ```shell
+   # 进入redis的安装目录bin
+   cd /...安装路径/bin 
+   # 在bin目录下创建一个新的目录kconfig用于存储redis.conf的复制文件
+   mkdir kconfig
+   # 将原始配置文件复制到新创建的../bin/kconfig中，用于之后的自定义修改而不损伤原始文件
+   cp /opt/redis-6.2.6/redis.conf kconfig
+   ```
+
+2. Redis默认不是后台启动的，修改新创建的配置文件使redis后台启动
+
+   ```shell
+   # 将../bin/kconfig中的 daemonize no 改成 daemonize yes。然后保存
+   daemonize yes
+   ```
+
+3. 使用修改后的配置文件启动Redis服务！
+
+   ```shell
+   # 命令行进入redis安装目录bin
+   # 然后使用 redis-server kconfig/redis.conf 来在后台启动指定配置文件的redis
+   cd ..redis../bin
+   redis-server kconfig/redis.conf
+   ```
+
+   
+
+
+
+
 
 1. 使用Redis客户端连接测试
 
@@ -402,7 +447,9 @@ shutdown
 
 
 
-### 2.4 Macos安装
+### 2.4 Macos安装及使用
+
+#### 2.4.1 安装
 
 > 方式1：docker安装
 
@@ -412,16 +459,150 @@ shutdown
 
 - 首先在mac上安装homebrew： https://blog.csdn.net/realize_dream/article/details/106227622
 
+  ```bash
+  # 查看homebrew安装路径：
+  (base) hillking@fengwennideMacBook-Pro opt % brew config |grep HOMEBREW
+  HOMEBREW_VERSION: 3.4.4
+  HOMEBREW_PREFIX: /opt/homebrew
+  HOMEBREW_CASK_OPTS: []
+  HOMEBREW_CORE_GIT_REMOTE: https://github.com/Homebrew/homebrew-core
+  HOMEBREW_MAKE_JOBS: 10
+  ```
+
 - 然后使用brew安装redis
 
   ```bash
   brew install redis
   ```
 
-- 然后启动redis并测试
+  brew默认安装在根目录的隐藏路径opt中，
+
+  redis默认安装在/opt/homebrew/Cellar/redis中。查看redis安装路径：
+
+  ```sh
+  (base) hillking@fengwennideMacBook-Pro opt % brew list redis
+  /opt/homebrew/Cellar/redis/6.2.6/.bottle/etc/ (2 files)
+  /opt/homebrew/Cellar/redis/6.2.6/bin/redis-benchmark
+  /opt/homebrew/Cellar/redis/6.2.6/bin/redis-check-aof
+  /opt/homebrew/Cellar/redis/6.2.6/bin/redis-check-rdb
+  /opt/homebrew/Cellar/redis/6.2.6/bin/redis-cli
+  /opt/homebrew/Cellar/redis/6.2.6/bin/redis-sentinel
+  /opt/homebrew/Cellar/redis/6.2.6/bin/redis-server
+  /opt/homebrew/Cellar/redis/6.2.6/homebrew.mxcl.redis.plist
+  /opt/homebrew/Cellar/redis/6.2.6/homebrew.redis.service
+  ```
+
+
+
+#### 2.4.2 启动与停止
+
+> 方式1：brew
+
+以默认的配置文件，brew命令启动与停止redis服务：
+
+```shell
+# 启动
+brew services start redis # 服务端启动后作为守护进程，关闭终端窗口不停止
+redis-cli                 # 服务端启动后，启动redis客户端
+brew services stop redis  # 关闭redis服务后端进程
+```
+
+测试：
+
+```shell
+=======================终端窗口1=======================
+# 1、启动redis服务端守护进程
+(base) hillking@fengwennideMacBook-Pro ~ % brew services start redis
+==> Successfully started `redis` (label: homebrew.mxcl.redis)
+# 2、启动redis客户端进程
+(base) hillking@fengwennideMacBook-Pro ~ % redis-cli
+127.0.0.1:6379> ping   # 测试redis是否可用
+PONG
+
+=======================终端窗口2=======================
+# 3、此时关闭redis服务端守护进程
+(base) hillking@fengwennideMacBook-Pro ~ % brew services stop redis
+Stopping `redis`... (might take a while)
+==> Successfully stopped `redis` (label: homebrew.mxcl.redis)
+
+=======================终端窗口1=======================
+# 4、重新在窗口1中验证redis是否可以用,发现redis-cli用不了了
+127.0.0.1:6379> ping
+Error: Server closed the connection
+```
+
+> 方式2：redis-server 默认配置启动
+
+可以在终端任意位置，使用默认的redis配置文件启动redis服务：`redis-server`命令。
+
+此时redis-cli停止，则redis-server也会停止。
+
+```shell
+# 1、启动redis-server
+(base) hillking@fengwennideMacBook-Pro ~ % redis-server
+24915:C 31 Mar 2022 16:59:16.647 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+24915:C 31 Mar 2022 16:59:16.647 # Redis version=6.2.6, bits=64, commit=00000000, modified=0, pid=24915, just started
+24915:C 31 Mar 2022 16:59:16.647 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+24915:M 31 Mar 2022 16:59:16.647 * Increased maximum number of open files to 10032 (it was originally set to 2560).
+24915:M 31 Mar 2022 16:59:16.647 * monotonic clock: POSIX clock_gettime
+                _._                                                  
+           _.-``__ ''-._                                             
+      _.-``    `.  `_.  ''-._           Redis 6.2.6 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._                                  
+ (    '      ,       .-`  | `,    )     Running in standalone mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
+ |    `-._   `._    /     _.-'    |     PID: 24915
+  `-._    `-._  `-./  _.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |           https://redis.io       
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |                                  
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+      `-._    `-.__.-'    _.-'                                       
+          `-._        _.-'                                           
+              `-.__.-'                                               
+.....
+
+# 2、然后启动redis-cli
+(base) hillking@fengwennideMacBook-Pro ~ % redis-cli     
+127.0.0.1:6379> ping
+PONG
+
+# 3、如果关闭redis-cli，则redis-server也会关闭
+===============================
+# 在窗口2关闭cli
+(base) hillking@fengwennideMacBook-Pro ~ % redis-cli     
+127.0.0.1:6379> ping
+PONG
+127.0.0.1:6379> shutdown
+not connected>
+===============================
+# 会发现窗口1的server也停止了
+.....
+24915:M 31 Mar 2022 16:59:16.649 * DB loaded from disk: 0.000 seconds
+24915:M 31 Mar 2022 16:59:16.649 * Ready to accept connections
+24915:M 31 Mar 2022 17:02:21.026 # User requested shutdown...
+24915:M 31 Mar 2022 17:02:21.026 * Saving the final RDB snapshot before exiting.
+24915:M 31 Mar 2022 17:02:21.028 * DB saved on disk
+24915:M 31 Mar 2022 17:02:21.028 # Redis is now ready to exit, bye bye...
+(base) hillking@fengwennideMacBook-Pro ~ % 
+===============================
+```
+
+
+
+> 方式3：修改配置文件自定义启动
+
+可以将redis设置成后端启动，将其变成一个守护进程。
+
+- 此时需要修改配置文件，类似2.3.2节：将`/opt/homebrew/Cellar/redis/6.2.6/.bottle/etc/redis.conf`文件复制到`bin`目录下，创建`kconfig/redis.conf`，然后修改文件中的`daemonize yes`。
+
+- 接下来就可以启动redis服务了
 
   ```bash
   brew services start redis
+  
   redis-server
   ```
 
