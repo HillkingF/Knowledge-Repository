@@ -354,18 +354,6 @@ docker pull redis:6.2.6   # 下载版本6.2.6
    make install # 安装确认
    ```
 
-   注意：mac上没有yum命令，首先安装yum。在终端依次输入以下命令：
-
-   ```bash
-   (base) hillking@fengwennideMacBook-Pro redis-6.2.6 % /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ......
-   brew install wget
-   brew install yum
-   
-   ```
-
-   curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install >> brew_install
-
 5. 然后
 
 1. 默认安装路径 `/usr/local/bin`
@@ -412,7 +400,61 @@ shutdown
 
 
 
-### 2.4 性能测试
+
+
+### 2.4 Macos安装
+
+> 方式1：docker安装
+
+......
+
+> 方式2：homebrew安装
+
+- 首先在mac上安装homebrew： https://blog.csdn.net/realize_dream/article/details/106227622
+
+- 然后使用brew安装redis
+
+  ```bash
+  brew install redis
+  ```
+
+- 然后启动redis并测试
+
+  ```bash
+  brew services start redis
+  redis-server
+  ```
+
+- 查看redis服务进程
+
+  ```bash
+  (base) hillking@fengwennideMBP ~ % ps axu | grep redis
+  hillking         19002   0.1  0.0 408785040   5472   ??  S    10:19上午   0:00.53 /opt/homebrew/opt/redis/bin/redis-server 127.0.0.1:6379 
+  hillking         19084   0.0  0.0 408628368   1632 s000  S+   10:26上午   0:00.00 grep redis
+  ```
+
+  使用redis-cli连接redis服务。redis默认端口号**6379**，默认**auth**为空，输入以下命令即可连接：
+
+  ```bash
+  (base) hillking@fengwennideMBP ~ % redis-cli -h 127.0.0.1 -p 6379
+  127.0.0.1:6379> 
+  或者
+  (base) hillking@fengwennideMBP ~ % redis-cli
+  127.0.0.1:6379> ping
+  PONG
+  ```
+
+- 关闭redis服务
+
+  ```bash
+  redis-cli shutdown
+  ```
+
+  
+
+
+
+### 2.5 性能测试
 
 
 
@@ -427,7 +469,7 @@ redis-benchmark -h localhost -p 6379 -c 100 -n 100000
 
 
 
-### 2.5 基础知识
+### 2.6 基础知识
 
 
 
