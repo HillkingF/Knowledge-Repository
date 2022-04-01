@@ -376,8 +376,6 @@ redis-server
 ......
 ```
 
-
-
 **自定义启动：**
 
 可以修改redis配置文件使其后台启动。修改配置文件及启动的过程如下：
@@ -409,33 +407,28 @@ redis-server
    redis-server kconfig/redis.conf
    ```
 
-   
+4. 使用Redis客户端连接测试
 
+   ```shell
+   redis-cli -p 6379
+   set name sugar
+   get name
+   keys *
+   ```
 
+5. 查看Redis进程是否开启
 
+   ```
+   ps -ef|grep redis
+   ```
 
+6. 关闭Redis服务
 
-1. 使用Redis客户端连接测试
-
-```bash
-redis-cli -p 6379
-set name sugar
-get name
-keys *
-```
-
-1. 查看Redis进程是否开启
-
-```bash
-ps -ef|grep redis
-```
-
-1. 关闭Redis服务
-
-```bash
-客户端连接后
-shutdown
-```
+   ```shell
+   客户端连接后
+   shutdown
+   exit
+   ```
 
 
 
@@ -531,7 +524,7 @@ Stopping `redis`... (might take a while)
 Error: Server closed the connection
 ```
 
-> 方式2：redis-server 默认配置启动
+> 方式2：redis-server 默认配置启动与停止
 
 可以在终端任意位置，使用默认的redis配置文件启动redis服务：`redis-server`命令。
 
@@ -576,7 +569,8 @@ PONG
 127.0.0.1:6379> ping
 PONG
 127.0.0.1:6379> shutdown
-not connected>
+not connected>exit
+
 ===============================
 # 会发现窗口1的server也停止了
 .....
@@ -594,41 +588,49 @@ not connected>
 
 > 方式3：修改配置文件自定义启动
 
-可以将redis设置成后端启动，将其变成一个守护进程。
+可以将redis设置成后端启动，将其变成一个守护进程。启动时通过自定义的配置文件启动：
 
 - 此时需要修改配置文件，类似2.3.2节：将`/opt/homebrew/Cellar/redis/6.2.6/.bottle/etc/redis.conf`文件复制到`bin`目录下，创建`kconfig/redis.conf`，然后修改文件中的`daemonize yes`。
 
-- 接下来就可以启动redis服务了
+- 接下来可以启动redis后台服务：
 
   ```bash
-  brew services start redis
-  
-  redis-server
+  # 1、进入redis自定义配置文件的父级目录
+  (base) hillking@fengwennideMacBook-Pro bin % pwd
+  /opt/homebrew/Cellar/redis/6.2.6/bin
+  # 2、使用’redis-server 配置文件‘的方式在后台启动redis服务
+  (base) hillking@fengwennideMacBook-Pro bin % redis-server kconfig/redis.conf
+  (base) hillking@fengwennideMacBook-Pro bin % 
+  ```
+
+- 使用客户端连接对应的端口，然后测试使用
+
+  ```shell
+  # redis-cli -h 127.0.0.1 -p 6379  或者下面的命令
+  (base) hillking@fengwennideMacBook-Pro bin % redis-cli -p 6379
+  127.0.0.1:6379> ping
+  PONG
+  127.0.0.1:6379> set name nini
+  OK
+  127.0.0.1:6379> get name
+  "nini"
   ```
 
 - 查看redis服务进程
 
   ```bash
-  (base) hillking@fengwennideMBP ~ % ps axu | grep redis
-  hillking         19002   0.1  0.0 408785040   5472   ??  S    10:19上午   0:00.53 /opt/homebrew/opt/redis/bin/redis-server 127.0.0.1:6379 
-  hillking         19084   0.0  0.0 408628368   1632 s000  S+   10:26上午   0:00.00 grep redis
-  ```
-
-  使用redis-cli连接redis服务。redis默认端口号**6379**，默认**auth**为空，输入以下命令即可连接：
-
-  ```bash
-  (base) hillking@fengwennideMBP ~ % redis-cli -h 127.0.0.1 -p 6379
-  127.0.0.1:6379> 
-  或者
-  (base) hillking@fengwennideMBP ~ % redis-cli
-  127.0.0.1:6379> ping
-  PONG
+  (base) hillking@fengwennideMacBook-Pro ~ % ps -ef | grep redis
+    501 26036     1   0  2:05下午 ??         0:02.31 redis-server 127.0.0.1:6379 
+    501 26069 24203   0  2:09下午 ttys000    0:00.02 redis-cli -p 6379
+    501 26102 24404   0  2:12下午 ttys001    0:00.00 grep redis
   ```
 
 - 关闭redis服务
 
   ```bash
-  redis-cli shutdown
+  # 在客户端窗口输入shutdown结束服务，输入exit退出。之后redis前后端都关闭了
+  127.0.0.1:6379> shutdown
+  not connected> exit
   ```
 
   
@@ -637,61 +639,73 @@ not connected>
 
 ### 2.5 性能测试
 
-
-
 **redis-benchmark**是一个压力测试工具。
 
-
+官方自带的性能测试工具
 
 ```bash
 # 测试：100个并发连接，100000个请求
 redis-benchmark -h localhost -p 6379 -c 100 -n 100000
 ```
 
+![img](img/3benchmark.png)
+
+![img](img/4testbenchmark.png)
+
+
+
 
 
 ### 2.6 基础知识
 
+> 1. Redis默认有16个数据库(redis.conf中默认声明)，默认使用第 0 个数据库，可以使用 `select` 进行切换。
 
+查看`redis.conf`中的数据库个数：
 
-Redis默认有16个数据库，默认使用第 0 个数据库，可以使用 `select` 进行切换。
+![img](img/5databasecount.png)
 
-
+对数据库的常用操作如下：
 
 ```bash
-127.0.0.1:6379> select 3		# 切换到第3个数据库
+(base) hillking@fengwennideMacBook-Pro / % redis-cli -p 6379   # 启动redis客户端
+127.0.0.1:6379> select 3          # select切换到数据库3
 OK
-127.0.0.1:6379[3]> dbsize		# 查看DB大小
+127.0.0.1:6379[3]> dbsize         # 查看数据库大小
 (integer) 0
-127.0.0.1:6379> keys *			# 查看数据库所有的key
-1) "name"
-2) "proxies"
-127.0.0.1:6379> flushdb			# 清空数据库
+127.0.0.1:6379[3]> set name nini  # set一个键值对
 OK
-127.0.0.1:6379> flushdb			# 清空全部数据库
+127.0.0.1:6379[3]> dbsize         # 查看数据库大小，此时变成了1
+(integer) 1
+127.0.0.1:6379[3]> select 7       # 切换到数据库7
+OK
+127.0.0.1:6379[7]> dbsize         # 空数据库，大小为0
+(integer) 0 
+127.0.0.1:6379[7]> get name       # 获取name对应的值，没有查到
+(nil)
+127.0.0.1:6379[7]> select 3       # 重新切换到数据库3
+OK
+127.0.0.1:6379[3]> get name       # 可以获取到name的值
+"nini"
+127.0.0.1:6379[3]> keys *         # 获取所有的key
+1) "name"
+127.0.0.1:6379[3]> flushdb        # 清空当前数据库
+OK
+127.0.0.1:6379[3]> keys *       
+(empty array)
+127.0.0.1:6379[3]> flushall       # 清空全部数据库
 OK
 ```
 
+> 2. Redis是单线程的！（最新版本6.0以上为多线程）
 
-
-Redis是单线程的！（最新版本6.0以上为多线程）
-
-
-
-Redis是基于内存操作的，CPU不是Redis的性能瓶颈，而是根据机器的内容和网络带宽。
-
-
+redis速度很快。Redis是基于内存操作的，CPU不是Redis的性能瓶颈，而是根据机器的内存和网络带宽。redis使用了单线程。
 
 Redis是C语言写的，达到100000+的QPS，不比Memcache差
 
-
-
 **Redis为什么单线程还这么快？**
 
-
-
 1. 误区1：高性能的服务器一定是多线程的？
-2. 误区2：多线程（CPU）一定比单线程效率高？
+2. 误区2：多线程（CPU上下文会切换 ）一定比单线程效率高？
 
 
 
