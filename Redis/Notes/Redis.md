@@ -721,48 +721,92 @@ Redis是C语言写的，达到100000+的QPS，不比Memcache差
 
 ## 3 五大数据类型
 
+**常用API在Redis官方文档中都有！** 
+
+- https://redis.io/docs/
+
+**中文网站中对redis的介绍：**
+
+- http://redis.cn/
+
+- Redis 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作*数据库*、*缓存*和*消息中间件*。 它支持多种类型的数据结构，如 [字符串（strings）](http://redis.cn/topics/data-types-intro.html#strings)， [散列（hashes）](http://redis.cn/topics/data-types-intro.html#hashes)， [列表（lists）](http://redis.cn/topics/data-types-intro.html#lists)， [集合（sets）](http://redis.cn/topics/data-types-intro.html#sets)， [有序集合（sorted sets）](http://redis.cn/topics/data-types-intro.html#sorted-sets) 与范围查询， [bitmaps](http://redis.cn/topics/data-types-intro.html#bitmaps)， [hyperloglogs](http://redis.cn/topics/data-types-intro.html#hyperloglogs) 和 [地理空间（geospatial）](http://redis.cn/commands/geoadd.html) 索引半径查询。 Redis 内置了 [复制（replication）](http://redis.cn/topics/replication.html)，[LUA脚本（Lua scripting）](http://redis.cn/commands/eval.html)， [LRU驱动事件（LRU eviction）](http://redis.cn/topics/lru-cache.html)，[事务（transactions）](http://redis.cn/topics/transactions.html) 和不同级别的 [磁盘持久化（persistence）](http://redis.cn/topics/persistence.html)， 并通过 [Redis哨兵（Sentinel）](http://redis.cn/topics/sentinel.html)和自动 [分区（Cluster）](http://redis.cn/topics/cluster-tutorial.html)提供高可用性（high availability）。
+
+**下面讲的而所有命令都要记住，之后使用springboot、jedis等，所有的方法就是这些命令！**
 
 
-**常用API在Redis官方文档中都有！**
+
+**redis命令不区分大小写，值区分大小写**
 
 
 
-Redis 是一个开源的，内存中的数据结构存储系统，可以用作数据库、缓存和消息中间件。它支持多种类型的数据结构，如字符串、散列、列表、集合、有序集合和范围查询，bitmaps、hyperloglogs和geopatial索引半径查询。Redis内置了 replication、Lua scripting、LRU eviction、transactions 和不同级别的 persistence，并通过 Redis哨兵和自动分区提供高可用性。
 
 
+### 3.1 Redis-Key
 
-#### 3.1 Redis-Key
+> 实践验证
 
+准备工作：
 
-
-```bash
-127.0.0.1:6379> set name sugar  # 设置Key-Value
-OK
-127.0.0.1:6379> keys *					# 查看所有Key
-1) "name"
-127.0.0.1:6379> get name
-"sugar"
-127.0.0.1:6379> EXISTS name			# 查看某个Key是否存在
-(integer) 1
-127.0.0.1:6379> move name 1			# 移动某个Key到另一个数据库
-(integer) 1
-127.0.0.1:6379> del name				# 删除某个Key
+```shell
+# 首先启动redis服务器，然后连接redis客户端，清空所有数据库
+(base) hillking@fengwennideMacBook-Pro bin % redis-server kconfig/redis.conf
+(base) hillking@fengwennideMacBook-Pro bin % redis-cli -p 6379
+127.0.0.1:6379> flushall
 OK
 127.0.0.1:6379> keys *
 (empty array)
-127.0.0.1:6379> set name sugar
+```
+
+测试验证：
+
+```bash
+127.0.0.1:6379> set name nini   # 设置key-value
 OK
-127.0.0.1:6379> EXPIRE name 10	# 为某个Key设置过期时间
+127.0.0.1:6379> get name        # 根据key获取某个value
+"nini"
+127.0.0.1:6379> keys *          # 查看所有的key
+1) "name"
+127.0.0.1:6379> exists name     # 查看某个key是否存在，存在为1，否则为0
 (integer) 1
-127.0.0.1:6379> ttl name				# 查看某个Key剩余时间
-(integer) 8
-127.0.0.1:6379> type name				# 查看数据类型
+127.0.0.1:6379> Exists name1
+(integer) 0
+127.0.0.1:6379> move name 1     # 将key=name移动到数据库1中
+(integer) 1
+
+
+127.0.0.1:6379> set name nini  
+OK
+127.0.0.1:6379> expire name 10  # 设置key=name在10秒后过期
+(integer) 1
+127.0.0.1:6379> ttl name        # 查看剩余过期时间：还有4秒
+(integer) 4
+127.0.0.1:6379> ttl name        # 查看剩余过期时间：-2表示已经过期了
+(integer) -2
+127.0.0.1:6379> keys *          # 过期后查看key：name，发现没有了！
+(empty array)
+
+
+127.0.0.1:6379> set name nini
+OK
+127.0.0.1:6379> keys *
+1) "name"
+127.0.0.1:6379> del name        # 删除某个key
+(integer) 1
+127.0.0.1:6379> keys *
+(empty array)
+
+
+127.0.0.1:6379> set name nini
+OK
+127.0.0.1:6379> type name       # 查看数据类型
 string
 ```
 
 
 
-#### 3.2 String（字符串）
+
+
+### 3.2 String（字符串）
 
 
 
@@ -778,55 +822,55 @@ String类似的使用场景：value除了是字符串，还可以是数字
 
 
 ```bash
-127.0.0.1:6379> set key1 v1
+127.0.0.1:6379> set name nini
 OK
-127.0.0.1:6379> get key1
-"v1"
-127.0.0.1:6379> append key1 "hello"  # 追加字符串，如果key不存在，则相当于set
-(integer) 7
-127.0.0.1:6379> get key1
-"v1hello"
-127.0.0.1:6379> strlen key1  # 获取字符串的长度
-(integer) 7
-127.0.0.1:6379> append key1 ",sugar"  
-(integer) 13
-127.0.0.1:6379> get key1
-"v1hello,sugar"
+127.0.0.1:6379> append name "nini"  # 对存在的key追加字符串，返回字符串长度。key不存在相当于set
+(integer) 8
+127.0.0.1:6379> get name
+"nininini"
+127.0.0.1:6379> keys *
+1) "name"
+127.0.0.1:6379> append key1 'hello'
+(integer) 5
+127.0.0.1:6379> keys *
+1) "key1"
+2) "name"
+127.0.0.1:6379> strlen name         # 获取字符串的长度
+(integer) 8
+
 #############################################################################  
 # 自增自减，步长
-127.0.0.1:6379> set views 0  # 初始浏览量为0
+127.0.0.1:6379> set views 0         # 初始浏览量为0(自定义初始值)
 OK
-127.0.0.1:6379> incr views  # 自增
+127.0.0.1:6379> incr views          # 自增1
 (integer) 1
-127.0.0.1:6379> incr views  # 自减
-(integer) 2
 127.0.0.1:6379> get views
-"2"
-127.0.0.1:6379> decr views
-(integer) 1
-127.0.0.1:6379> incrby views 10  # 自增，步长10
-(integer) 11
-127.0.0.1:6379> decrby views 5  # 自减，步长5
-(integer) 6
-#############################################################################  
+"1"
+127.0.0.1:6379> decr views          # 自减1
+(integer) 0
+127.0.0.1:6379> incrby views 10     # 设置步长10，自增10
+(integer) 10
+127.0.0.1:6379> decrby views 5      # 设置自减步长5
+(integer) 5
+127.0.0.1:6379> get views      
+"5"
+#############################################################################
 # 字符串范围 getrange
 127.0.0.1:6379> set key1 "hello,sugar"
 OK
-127.0.0.1:6379> get key1
-"hello,sugar"
-127.0.0.1:6379> getrange key1 0 3  # 字符串截取
+127.0.0.1:6379> getrange key1 0 3   # 截取第0位到第3位子串
 "hell"
-127.0.0.1:6379> getrange key1 0 -1
-"hello,sugar"
+127.0.0.1:6379> getrange key1 0 -1  # 截取第0位到最后一位
+"hello,nini"
+
 # 替换
 127.0.0.1:6379> set key2 abcdefg
 OK
-127.0.0.1:6379> get key2
-"abcdefg"
 127.0.0.1:6379> setrange key2 1 xx  # 替换指定位置开始的字符串
 (integer) 7
 127.0.0.1:6379> get key2
 "axxdefg"
+
 #############################################################################  
 # setex (set with expire)  # 设置过期时间
 # setnx (set if not exist)  # 不存在时设置（在分布式锁中常用）
