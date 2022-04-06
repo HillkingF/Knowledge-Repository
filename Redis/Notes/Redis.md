@@ -1126,52 +1126,60 @@ OK
 
 
 
-#### 3.4 Set（集合）
-
-
+### 3.4 Set（集合）
 
 Set是**无序不重复**集合。
 
-
-
 ```bash
 #############################################################################
+
+# sadd 添加元素（已经存在的元素不能重复添加）
+# smembers 查看元集合中的元素
+# sismember 判断元素是否在集合中
 127.0.0.1:6379> sadd myset "hello"  # 添加元素
 (integer) 1
 127.0.0.1:6379> sadd myset "sugar"  
 (integer) 1
+127.0.0.1:6379> sadd myset "sugar"  # 不能添加重复的元素
+(integer) 0
 127.0.0.1:6379> sadd myset "heihei"
 (integer) 1
 127.0.0.1:6379> smembers myset  # 查看指定set的所有元素
 1) "sugar"
 2) "hello"
 3) "heihei"
-127.0.0.1:6379> sismember myset hello  # 判断某个元素是否在set中
+127.0.0.1:6379> sismember myset hello  # 判断元素hello是否在myset中
 (integer) 1
-127.0.0.1:6379> sismember myset world
+127.0.0.1:6379> sismember myset world  # 存在返回1，不存在返回0 
 (integer) 0
+
 #############################################################################
-# scard
-127.0.0.1:6379> scard myset  # 获取set集合中元素的个数
+
+# scard  获取set集合中元素的个数
+127.0.0.1:6379> scard myset 
 (integer) 3
+
 #############################################################################
-# srem
-127.0.0.1:6379> srem myset hello  # 删除set中的指定个元素
+
+# srem 删除某个元素
+127.0.0.1:6379> srem myset hello  # 删除myset中的元素hello
 (integer) 1
 127.0.0.1:6379> scard myset
 (integer) 2
 127.0.0.1:6379> smembers myset
 1) "sugar"
 2) "heihei"
+
 #############################################################################
-# 随机抽取元素
+# srandmember 随机抽取元素
 127.0.0.1:6379> srandmember myset  # 随机抽取一个元素
 "heihei"
 127.0.0.1:6379> srandmember myset 2  # 随机抽取指定个数元素
 1) "sugar"
 2) "heihei"
 #############################################################################
-# 随机删除key
+
+# spop 随机删除key
 127.0.0.1:6379> smembers myset
 1) "sugar"
 2) "hello"
@@ -1182,9 +1190,11 @@ Set是**无序不重复**集合。
 "heihei"
 127.0.0.1:6379> smembers myset
 1) "hello"
+
 #############################################################################
-# 将一个指定的key移动到另外一个set中
-127.0.0.1:6379> smove myset myset2 sugar  # 移动到另外一个set中
+
+# smove 将一个set中指定的key移动到另外一个set中
+127.0.0.1:6379> smove myset myset2 sugar  # 将myset中的元素suger移动到myset2中
 (integer) 1
 127.0.0.1:6379> smembers myset
 1) "hello"
@@ -1192,14 +1202,19 @@ Set是**无序不重复**集合。
 127.0.0.1:6379> smembers myset2
 1) "sugar"
 2) "set2"
+
 #############################################################################
+
 # 微博中共同关注、二度好友等功能的实现（并集）
-# 数字集合类：交集、并集、差集
+# 数字集合类：
+# sdiff：差集
+# sinter：交集
+# sunion：并集
 127.0.0.1:6379> sadd key1 a b c
 (integer) 3
 127.0.0.1:6379> sadd key2 c d e
 (integer) 3
-127.0.0.1:6379> sdiff key1 key2  # key1与key2不同的元素
+127.0.0.1:6379> sdiff key1 key2  # 返回key1中与key2不同的元素 
 1) "a"
 2) "b"
 127.0.0.1:6379> sinter key1 key2  # 交集
