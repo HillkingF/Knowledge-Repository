@@ -1229,11 +1229,13 @@ Set是**无序不重复**集合。
 
 
 
-#### 3.5 Hash（哈希）
+### 3.5 Hash（哈希）
 
 Map集合，key-Map集合！本质和String类型没有太大区别，还是简单的 key-value。
 
 Hash可以存user对象的name、age，用户信息之类的，尤其是经常变动的信息。
+
+Hash更适合于对象的存储，String更加适合字符串的存储
 
 ```bash
 #############################################################################
@@ -1268,25 +1270,32 @@ OK
 2) "world"
 
 #############################################################################
+
 # hlen  # 获取key的长度
 127.0.0.1:6379> hlen myhash  # 获取哈希长度
 (integer) 1
+
 #############################################################################
+
 # hexists 
 127.0.0.1:6379> hexists myhash field1  # 判断指定字段是否存在
 (integer) 0
 127.0.0.1:6379> hexists myhash field2
 (integer) 1
+
 #############################################################################
+
 # 只获取所有field
-# 只获取所有vale
+# 只获取所有value
 127.0.0.1:6379> hkeys myhash  # 获取所有字段
 1) "field2"
 127.0.0.1:6379> hvals myhash  # 获取所有值
 1) "world"
+
 #############################################################################
-# incr  decr  setnx
-127.0.0.1:6379> hset myhash field3 5
+
+# incr  decr  setnx 自增、自减、不存在则设置
+127.0.0.1:6379> hset myhash field3 5     # 指定增量
 (integer) 1
 127.0.0.1:6379> hincrby myhash field3 1  # 自增
 (integer) 6
@@ -1294,7 +1303,7 @@ OK
 (integer) 5
 127.0.0.1:6379> hsetnx myhash field4 hello  # 如果不存在则可以set
 (integer) 1
-127.0.0.1:6379> hsetnx myhash field4 hello
+127.0.0.1:6379> hsetnx myhash field4 hello  # 如果存在不能设置
 (integer) 0
 ```
 
@@ -1304,13 +1313,9 @@ OK
 
 
 
-#### 3.6 Zset（有序集合）
+### 3.6 Zset（有序集合）
 
-
-
-在Set的基础上，增加了一个值，set k1 v1，zset k1 score1 v1
-
-
+在Set的基础上，增加了一个值，`set k1 v1` ===> `zset k1 score1 v1`
 
 案例思路：set 排序，存储班级成绩，工资表排序，带权重判断，排行榜应用实现，取TOP N...
 
@@ -1318,7 +1323,9 @@ OK
 
 ```bash
 #############################################################################
-127.0.0.1:6379> zadd myset 1 one  # 添加一个值
+
+# zadd：添加值
+127.0.0.1:6379> zadd myset 1 one          # 添加一个值
 (integer) 1
 127.0.0.1:6379> zadd myset 2 two 3 three  # 添加多个值
 (integer) 2
@@ -1326,8 +1333,12 @@ OK
 1) "one"
 2) "two"
 3) "three"
+
 #############################################################################
-# 实现排序
+
+# 实现排序:
+# zrangebyscore：从小到大排序
+# zrevrange：从大到小排序
 127.0.0.1:6379> zadd salary 2500 xiaoming  # 添加三个用户
 (integer) 1
 127.0.0.1:6379> zadd salary 5000 zhangsan
@@ -1338,9 +1349,6 @@ OK
 1) "wangwu"
 2) "xiaoming"
 3) "zhangsan"
-127.0.0.1:6379> zrevrange salary 0 -1  # 从大到小排序
-1) "zhangsan"
-2) "wangwu"
 127.0.0.1:6379> zrangebyscore salary -inf +inf withscores  # 带成绩返回
 1) "wangwu"
 2) "500"
@@ -1348,13 +1356,18 @@ OK
 4) "2500"
 5) "zhangsan"
 6) "5000"
+127.0.0.1:6379> zrevrange salary 0 -1  # 从大到小排序
+1) "zhangsan"
+2) "wangwu"
 127.0.0.1:6379> zrangebyscore salary -inf 2500 withscores  # 限定scores范围
 1) "wangwu"
 2) "500"
 3) "xiaoming"
 4) "2500"
+
 #############################################################################
-# zrem
+
+# zrem：移除value
 127.0.0.1:6379> zrange salary 0 -1
 1) "wangwu"
 2) "xiaoming"
@@ -1364,12 +1377,13 @@ OK
 127.0.0.1:6379> zrange salary 0 -1
 1) "wangwu"
 2) "zhangsan"
+
 #############################################################################
-# zcard
+# zcard: 移除Key及value
 127.0.0.1:6379> zcard salary  # 获取元素个数
 (integer) 2
 #############################################################################
-# 区间计算
+# zcount: 区间计算
 127.0.0.1:6379> zadd myset 1 hello 2 world 3 sugar
 (integer) 3
 127.0.0.1:6379> zcount myset 1 3  # 获取指定区间的元素数量
@@ -1395,7 +1409,7 @@ OK
 
 
 
-#### 4.1 geospatial 地理位置
+###  4.1 geospatial 地理位置
 
 
 
@@ -1413,8 +1427,6 @@ Redis 的 GEO，可以推荐地理位置的信息、两地之间的距离、方�
 
 只有六个命令：
 
-
-
 - GEOADD
 - GEODIST
 - GEOHASH
@@ -1424,20 +1436,20 @@ Redis 的 GEO，可以推荐地理位置的信息、两地之间的距离、方�
 
 
 
-##### 4.1.1 geoadd
+#### 4.1.1 geoadd
 
-
+添加地理位置对应的经度和纬度
 
 ```bash
 # geoadd 添加地理位置
 # 规则：地球两极无法直接添加，一般会下载城市数据通过程序直接导入
-# 参数 key 值（纬度、经度、名称）
-# 有效的精度从-180度到180度，有效的纬度从-85度到85度。
+# geoadd key 值(纬度、经度、名称)
+# 有效的经度从-180度到180度，有效的纬度从-85度到85度。
 127.0.0.1:6379> geoadd china:city 116.40 39.90 beijing
 (integer) 1
 127.0.0.1:6379> geoadd china:city 121.47 31.23 shanghai
 (integer) 1
-127.0.0.1:6379> geoadd china:city 106.50 29.53 chognqing
+127.0.0.1:6379> geoadd china:city 106.50 29.53 chongqin 
 (integer) 1
 127.0.0.1:6379> geoadd china:city 114.05 22.52 shenzhen 120.16 30.24 hangzhou 108.96 34.26 xian
 (integer) 3
@@ -1447,17 +1459,23 @@ Redis 的 GEO，可以推荐地理位置的信息、两地之间的距离、方�
 
 ##### 4.1.2 geopos
 
+从key中返回所有给定位置元素的位置(经度和纬度)。
+
+返回结果形式如下：
+
 ```bash
-127.0.0.1:6379> geopos china:city beijing  # 获取指定城市的精度和纬度
+127.0.0.1:6379> geopos china:city beijing chongqin  # 获取指定城市的精度和纬度
 1) 1) "116.39999896287918091"
    2) "39.90000009167092543"
+2) 1) "106.49999767541885376"
+   2) "29.52999957900659211"
 ```
 
 
 
 ##### 4.1.3 geodist
 
-**应用****：**计算两人之间的直线距离
+**应用：**计算两人之间的直线距离
 
 **单位：**
 
@@ -1486,27 +1504,27 @@ Redis 的 GEO，可以推荐地理位置的信息、两地之间的距离、方�
 
 
 ```bash
-127.0.0.1:6379> georadius china:city 110 30 1000 km  # 获取 110 30 这个经纬度为中心，方圆1000km内的城市
+# 可选参数：withdist withcoord count+n
+
+
+127.0.0.1:6379> georadius china:city 110 30 1000 km  # 以经度纬度(110,30)为中心点，获取方圆1000km内的城市
 1) "chognqing"
 2) "xian"
 3) "shenzhen"
 4) "hangzhou"
-127.0.0.1:6379> georadius china:city 110 30 500 km  # 方圆500km内的城市
-1) "chognqing"
-2) "xian"
-127.0.0.1:6379> georadius china:city 110 30 500 km withdist  # 显示到中心的直线距离
+127.0.0.1:6379> georadius china:city 110 30 500 km withdist  # 显示到中心(110,30)的直线距离
 1) 1) "chognqing"
    2) "341.9374"
-2) 1) "xian"
+2) 1) "xian" 
    2) "483.8340"
-127.0.0.1:6379> georadius china:city 110 30 500 km withcoord  # 显示他人的定位信息
+127.0.0.1:6379> georadius china:city 110 30 500 km withcoord  # 显示他人的(经度，纬度)信息
 1) 1) "chognqing"
-   2) 1) "106.49999767541885376"d
+   2) 1) "106.49999767541885376"
       2) "29.52999957900659211"
 2) 1) "xian"
    2) 1) "108.96000176668167114"
       2) "34.25999964418929977"
-127.0.0.1:6379> georadius china:city 110 30 500 km withdist withcoord count 1  # 显示指定数量的
+127.0.0.1:6379> georadius china:city 110 30 500 km withdist withcoord count 1  # 显示指定数量的地点
 1) 1) "chognqing"
    2) "341.9374"
    3) 1) "106.49999767541885376"
@@ -1521,7 +1539,7 @@ Redis 的 GEO，可以推荐地理位置的信息、两地之间的距离、方�
 
 ```bash
 # 找出位于指定元素周围的其他元素
-127.0.0.1:6379> georadiusbymember china:city beijing 1000 km
+127.0.0.1:6379> georadiusbymember china:city beijing 1000 km # 以beijing这个元素为中心，方圆1000km内的元素
 1) "beijing"
 2) "xian"
 127.0.0.1:6379> georadiusbymember china:city shanghai 400 km
@@ -1533,29 +1551,32 @@ Redis 的 GEO，可以推荐地理位置的信息、两地之间的距离、方�
 
 ##### 4.1.6 geohash（返回一个或多个位置元素的geohash表示）
 
-该命名将返回11个字符的Geohash字符串。
+该命令将返回11个字符的Geohash字符串。
 
 ```bash
 # 将二维的经纬度转换为一维的字符串，如果两个字符串越接近，则距离越近
-127.0.0.1:6379> geohash china:city beijing chognqing  
+127.0.0.1:6379> geohash china:city beijing chongqin shanghai
 1) "wx4fbxxfke0"
 2) "wm5xzrybty0"
+3) "wtw3sj5zbj0"
 ```
 
 
 
 ##### 4.1.7 Geo底层实现原理：Zset！可以使用Zset命令来操作Geo
 
+`china:city`是上面创建的位置key，可以使用zset命令来读写修改
+
 ```bash
 # zrem 移除元素
-127.0.0.1:6379> zrange china:city 0 -1
+127.0.0.1:6379> zrange china:city 0 -1 # 使用zrange来查看所有位置元素
 1) "chognqing"
 2) "xian"
 3) "shenzhen"
 4) "hangzhou"
 5) "shanghai"
 6) "beijing"
-127.0.0.1:6379> zrem china:city beijing  # 移除指定元素
+127.0.0.1:6379> zrem china:city beijing # 使用zrem移除指定位置元素beijing
 (integer) 1
 127.0.0.1:6379> zrange china:city 0 -1
 1) "chognqing"
@@ -1567,15 +1588,17 @@ Redis 的 GEO，可以推荐地理位置的信息、两地之间的距离、方�
 
 
 
+
+
+
+
 #### 4.2 hyperloglog
-
-
 
 基数
 
 A {1, 3, 5, 7, 8, 9, 7}
 
-B{1, 3, 5, 7, 8}
+B {1, 3, 5, 7, 8}
 
 **基数**（不重复的元素）：5，可以接收误差！
 
