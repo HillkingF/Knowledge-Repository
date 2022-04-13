@@ -1908,25 +1908,21 @@ QUEUED
 
 ## 6 Jedis
 
-
-
 使用 Java 来操作 Redis。
 
 
 
-#### 6.1 什么是 Jedis
+### 6.1 什么是 Jedis
 
+**Jedis：**是Redis官方推荐的Java连接开发工具！使用 Java 操作Redis中间件，需要对 Jedis十分熟悉！
 
+> 测试
 
-Redis 官方推荐的 Java 连接开发工具！使用 Java 操作 Redis 中间件，需要对 Redis十分熟悉！
+1. 在IDEA中创建一个空项目，然后增加maven module。（下图第6步结束后，缺哪补哪继续步骤就行）
 
+   ![png](img/6IDEAcreateRedisMaven.png)
 
-
-测试
-
-
-
-1. 导入对应的依赖
+2. 导入对应的依赖
 
 ```xml
 <dependency>
