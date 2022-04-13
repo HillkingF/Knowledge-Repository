@@ -1,4 +1,4 @@
-package com.nini;
+package com.nini.dataType;
 
 import redis.clients.jedis.Jedis;
 

@@ -1,4 +1,4 @@
-package com.nini;
+package com.nini.dataType;
 import redis.clients.jedis.Jedis;
 public class TestKey {
     public static void main(String[] args) {

@@ -2237,27 +2237,57 @@ public class TestHash {
 
 ### 6.3 事务
 
+- 一定要启动服务主机上的redis服务
+- 然后再使用Jedis连接redis并使用
+
 ```java
-Jedis jedis = new Jedis("localhsot", 6379);
-jedis.auth("123456");
+package com.nini.Transaction;
+import com.alibaba.fastjson.JSONObject;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Transaction;
+import javax.swing.*;
 
-JSONObject obj = new JSONObject();
-obj.put("hello", "world");
-obj.put("name", "sugar");
-// 开启事务
-Transaction multi = jedis.multi();
+public class TestTransaction {
+    public static void main(String[] args) {
+        // 0、create data
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("hello", "world");
+        jsonObject.put("name", "nini");
+        String result = jsonObject.toJSONString();
 
-try {
-  multi.set("user1", obj.toJSONString());
-  multi.set("user2", obj.toJSONString());
-  multi.exec();  // 执行事务
-} catch (Exception e) {
-  multi.discard();  // 放弃事务
-} finally {
-  System.out.println(jedis.get("user1"));
-  System.out.println(jedis.get("user2"));
-  jedis.close();  // 关闭连接
+        // 1、connect redis server
+        Jedis jedis = new Jedis("localhost", 6379);
+
+        // 2、start Transaction
+        Transaction multi = jedis.multi();
+
+        try {
+            // 3、set data to transaction
+            multi.set("user1", result);
+            multi.set("user2", result);
+
+            // 4、exec transaction
+            multi.exec();
+        } catch (Exception e) {
+            // 5、discard
+            multi.discard();
+            e.printStackTrace();
+        } finally {
+            System.out.println(jedis.get("user1"));
+            System.out.println(jedis.get("user2"));
+            // 6、close connection
+            jedis.close();
+        }
+    }
 }
+
+
+================运行结果=============================
+......
+{"name":"nini","hello":"world"}
+{"name":"nini","hello":"world"}
+
+Process finished with exit code 0
 ```
 
 
