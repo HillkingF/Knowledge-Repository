@@ -2294,31 +2294,33 @@ Process finished with exit code 0
 
 
 
+
+
 ------
 
 ## 7 SpringBoot整合
+
+### 7.1 源码解析及测试验证
 
 
 
 SpringBoot操作数据：Spring-Data（JPA、JDBC、MongoDB、Redis）
 
+Spring-Data也是和SprintBoot齐名的项目！(在Spring官网中可以找到)
+
+maven仓库：https://mvnrepository.com/
+
 
 
 注：在 SpringBoot 2.x 之后，原来使用的 Jedis 被替换为 lettuce。
 
-
-
-**Jedis**：采用直连方式，多个线程操作的话，是不安全的。为了避免不安全，使用 Jedis Pool 连接池！更像 BIO 模式。
-
-
+**Jedis**：采用直连方式，多个线程操作的话，是不安全的。为了避免不安全，使用 Jedis Pool 连接池！更像 BIO 模式。 
 
 **lettuce**：采用 netty，实例可以在多个线程中进行共享，不存在线程不安全的情况！可以减少线程数量，更像 NIO 模式。
 
 
 
-源码：
-
-
+> 源码：
 
 ```java
 @Configuration(proxyBeanMethods = false)
@@ -2351,9 +2353,7 @@ public class RedisAutoConfiguration {
 
 
 
-整合测试
-
-
+> 整合测试
 
 1. 导入依赖
 
@@ -2364,9 +2364,7 @@ public class RedisAutoConfiguration {
 </dependency>
 ```
 
-1. 配置连接
-
-
+2. 配置连接
 
 ```yaml
 # 配置redis
@@ -2375,112 +2373,274 @@ spring:
     host: 127.0.0.1
     port: 6379
     password: 123456
+
+=================在application.properties文件中配置redis地址和端口号==========
+# springboot所有的配置类，都有一个自动配置类: RedisAutoConfiguration
+# 自动配置类都会绑定一个properties配置文件： RedisProperties
+
+# 配置redis
+spring.redis.host=127.0.0.1
+spring.redis.port=6379
 ```
 
+3. 测试
 
-
-1. 测试
-
-
+- 首先在服务主机上启动redis-server服务
+- 然后在IDEA测试代码中进行验证`src/test/java/com/nini/Redis02SpringbootApplicationTests.java`
 
 ```java
-package com.sugar;
+package com.nini;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 
 @SpringBootTest
 class Redis02SpringbootApplicationTests {
+    @Autowired
+    private RedisTemplate redisTemplate;
 
-	@Autowired
-	private RedisTemplate redisTemplate;
+    @Test
+    void contextLoads() {
 
-	@Test
-	void contextLoads() {
-    
-    // 在企业开发中，80%情况下都不会使用这种原生的方式去编写原生代码。  ==>  RedisUtils
+        // 在企业开发中，80%情况下都不会使用 RedisTemplate这种原生的方式去编写原生代码,而是使用封装的类。==>  RedisUtils
 
-		// redisTemplate  操作不同的数据类型，opt和Redis指令一样
-		// opsForValue  操作字符串 类型String
-		// opsForList   操作List  类型String
-		// opsForSet
-		// opsForHash
-		// opsForZSet
-		// opsForGeo
-		// opsForHyperLoglog
+        // redisTemplate  操作不同的数据类型，api方法和Redis指令一样
+        // opsForValue  操作字符串 类型String
+        // opsForList   操作List  类型String
+        // opsForSet
+        // opsForHash
+        // opsForZSet
+        // opsForGeo
+        // opsForHyperLoglog
 
-		// 除了基本的操作，常用的方法都可以直接redisTemplate操作，比如事务、基本的CRUD
-//		RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
-//		connection.flushDb();
-//		connection.flushAll();
+        // 除了基本的操作，常用的方法都可以直接redisTemplate操作，比如事务、基本的CRUD
+        //		RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
+        //		connection.flushDb();
+        //		connection.flushAll();
 
-		redisTemplate.opsForValue().set("mykey", "sugar");
-		System.out.println(redisTemplate.opsForValue().get("mykey"));
-	}
+        redisTemplate.opsForValue().set("mykey", "nini");
+        System.out.println(redisTemplate.opsForValue().get("mykey"));
+    }
 }
+
+////////////////运行结果如下/////////////////
+......
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v2.6.6)
+
+2022-04-14 13:39:02.110  INFO 4986 --- [           main] c.n.Redis02SpringbootApplicationTests    : Starting Redis02SpringbootApplicationTests using Java 11.0.12 on fengwennideMacBook-Pro.local with PID 4986 (started by hillking in /Users/hillking/MyDocuments/GitHub/Knowledge-Repository/Redis/redis-project/redis-02-springboot)
+2022-04-14 13:39:02.112  INFO 4986 --- [           main] c.n.Redis02SpringbootApplicationTests    : No active profile set, falling back to 1 default profile: "default"
+2022-04-14 13:39:03.729  INFO 4986 --- [           main] c.n.Redis02SpringbootApplicationTests    : Started Redis02SpringbootApplicationTests in 2.253 seconds (JVM running for 3.796)
+nini
+
+Process finished with exit code 0
 ```
 
+- 打开一个redis-cli终端窗口，查看所有的key如下，发现是一串代码，而不是`mykey`。这是因为序列化：
 
+  在下面的图片中看到，`RedisTemplate.java`源码中定义了序列化配置，默认使用了JDK序列化方式。
+
+  我们可以自己定义序列化方式，创建一个redis配置类。
+
+```bash
+127.0.0.1:6379> keys *
+1) "\xac\xed\x00\x05t\x00\x05mykey"
+```
 
 ![img](img/1617798448396-0f077a42-adc5-43f0-ae03-ff557ecb5b24.png)
 
-
-
 ![img](img/1617798455647-4c731271-f6aa-427f-9ea7-55800bcf373d.png)
 
-
-
-#### 7.1 自定义 RedisTemplate
-
-
-
-**关于对象的保存存在的问题：**
+- **下面一节介绍如何自定义redis配置类！**
 
 
 
-```java
-	@Test
-	void test() throws JsonProcessingException {
-		// 真实开发使用JSON来传递对象
-		User user = new User("sugar", 3);
-		String jsonUser = new ObjectMapper().writeValueAsString(user);  // Jackson
-//		redisTemplate.opsForValue().set("user", user);  // 直接传递对象会报错，需要将对象序列化
-		redisTemplate.opsForValue().set("user", jsonUser);
-
-		System.out.println(redisTemplate.opsForValue().get("user"));
-	}
-```
 
 
+### 7.2 自定义 RedisTemplate
 
 企业开发中，一般将 pojo 类进行序列化，然后进行操作。
 
+> 问题引入：**关于对象的保存存在的问题：**
+>
+> 如果不进行对象序列化直接保存对象，那么会报错。
+>
+> 如下面代码案例所示。
 
+- 创建一个实体类`User.java`，此时没有对类进行序列化
 
-1. 将 pojo类 序列化
+  ```java
+  package com.nini.pojo;
+  
+  import lombok.AllArgsConstructor;
+  import lombok.Data;
+  import lombok.NoArgsConstructor;
+  import org.springframework.stereotype.Component;
+  
+  @Component
+  @AllArgsConstructor
+  @NoArgsConstructor
+  @Data
+  public class User {        
+      private String name;
+      private int age;
+  }
+  ```
 
-```java
-@Component
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-public class User implements Serializable {
+- 然后在测试类中，创建User实体类的对象，并将这个未序列化的对象直接存到redis中，会报错
 
-    private String name;
+  ```java
+  package com.nini;
+  
+  import com.fasterxml.jackson.core.JsonProcessingException;
+  import com.fasterxml.jackson.databind.ObjectMapper;
+  import com.nini.pojo.User;
+  import org.junit.jupiter.api.Test;
+  import org.springframework.beans.factory.annotation.Autowired;
+  import org.springframework.boot.test.context.SpringBootTest;
+  import org.springframework.data.redis.core.RedisTemplate;
+  
+  @SpringBootTest
+  class Redis02SpringbootApplicationTests {
+      @Autowired
+      private RedisTemplate redisTemplate;
+  
+      @Test
+      public void test() throws JsonProcessingException {
+          // 创建未序列化的实体类对象user
+          User user = new User("nini", 3);
+          // 然后将此user对象放到redis中：使用set存储，使用get查看
+          redisTemplate.opsForValue().set("user", user);
+          System.out.println(redisTemplate.opsForValue().get("user"));
+      }
+  }
+  =========================运行test()报错===================
+  ......
+    org.springframework.data.redis.serializer.SerializationException: Cannot serialize; 
+  ......
+  ```
 
-    private int age;
-}
+> 问题解决：**将对象序列化后存入redis的方法**
+>
+> 有两种方法可以将对象序列化：①在实体类创建时进行序列化，②在测试类中将对象转换成json字符串
+>
+> 如下面代码所示
+
+- 对象序列化方式1：实体类`implements Serializable `
+
+  ```java
+  ===================实体类实现序列化接口=====================
+  package com.nini.pojo;
+  import lombok.AllArgsConstructor;
+  import lombok.Data;
+  import lombok.NoArgsConstructor;
+  import org.springframework.stereotype.Component;
+  import java.io.Serializable;
+  @Component
+  @AllArgsConstructor
+  @NoArgsConstructor
+  @Data
+  public class User implements Serializable {   【实现序列化接口】
+      private String name;
+      private int age;
+  }
+  ===================测试类===============================
+  @SpringBootTest
+  class Redis02SpringbootApplicationTests {
+      @Autowired
+      private RedisTemplate redisTemplate;
+  
+      @Test
+      public void test() throws JsonProcessingException {
+          // 此时User实体类实现了序列化接口
+          User user = new User("nini", 3);
+          // 然后将此user对象放到redis中：使用set存储，使用get查看
+          redisTemplate.opsForValue().set("user", user);
+          System.out.println(redisTemplate.opsForValue().get("user"));
+      }
+  }
+  ===================运行test()测试结果=====================
+  ......
+  User(name=nini, age=3)
+  
+  Process finished with exit code 0
+  ```
+
+- 对象序列化方式2：使用`ObjectMapper()`将对象转换成字符串
+
+  ```java
+  ===================实体类未实现序列化接口=====================
+  public class User {
+      private String name;
+      private int age;
+  }
+  ===================在测试类中将对象转换成json字符串============
+  @SpringBootTest
+  class Redis02SpringbootApplicationTests {
+      @Autowired
+      private RedisTemplate redisTemplate;
+  
+      @Test
+      public void test() throws JsonProcessingException {
+          // 真实的开发中一般都使用json来传递对象
+          User user = new User("nini", 3);
+          // 因此将user对象保存成一个json字符串
+          String jsonUser = new ObjectMapper().writeValueAsString(user);
+          // 然后将json字符串放到redis中：使用set存储，使用get查看
+          redisTemplate.opsForValue().set("user", jsonUser);
+          System.out.println(redisTemplate.opsForValue().get("user"));
+      }
+  }
+  ===================test()测试结果==========================
+  ......
+  {"name":"nini","age":3}
+  
+  Process finished with exit code 0 
+    
+  ```
+
+> 终端查看结果
+
+以上方式保存的key在终端中显示为序列化代码。
+
+```bash
+127.0.0.1:6379> keys *
+1) "\xac\xed\x00\x05t\x00\x04user"
+2) "\xac\xed\x00\x05t\x00\x05mykey"
 ```
 
-1. 编写自定义 RedisTemplate
+
+
+> 编写自定义 RedisTemplate
+
+以上序列化过程我们使用了默认的JDK序列化方式。
+
+- 我们也可以自己设置序列化方式，此时创建`RedisConfig.java`作为redis的序列化配置类（这个类可直接迁移使用，是一个固定的模板）
 
 ```java
+package com.nini.config;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.net.UnknownHostException;
+
 @Configuration
 public class RedisConfig {
-
     // 自定义RedisTemplate
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory)
@@ -2513,9 +2673,57 @@ public class RedisConfig {
 }
 ```
 
+- 在测试类中使用自定义的redis配置类查看序列化结果
+
+```java
+package com.nini;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nini.pojo.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+
+@SpringBootTest
+class Redis02SpringbootApplicationTests {
+    @Autowired                            【自动注入自定义的RedisConfig】
+    @Qualifier("redisTemplate")
+    private RedisTemplate redisTemplate;  【这里使用的是自定义的配置类进行序列化】
+
+    @Test
+    public void test() throws JsonProcessingException {
+        // 这里的User实体类对象实现或者不实现序列化接口都可以
+        User user = new User("nini", 3);
+        // 然后将实体类对象放到redis中：使用set存储，使用get查看
+        redisTemplate.opsForValue().set("user1", user);
+        System.out.println(redisTemplate.opsForValue().get("user"));
+    }
+}
+
+=======================运行test()========================
+  ......
+User(name=nini, age=3)
+
+Process finished with exit code 0
+======================终端查看所有key======================
+(base) hillking@fengwennideMacBook-Pro ~ % redis-cli -p 6379 
+127.0.0.1:6379> keys *
+1) "\xac\xed\x00\x05t\x00\x04user"
+2) "user"
+
+结果说明：1)是使用默认JDK序列化方式保存对象的结果
+        2)是使用自定义RedisTemplate类序列化对象的结果
+```
+
+**备注：如果修改了配置类后，终端key*结果还是代码串，可以删除项目缓存，重新build！**
 
 
-#### 7.2 Redis工具类
+
+
+
+### 7.3 Redis工具类
 
 
 
