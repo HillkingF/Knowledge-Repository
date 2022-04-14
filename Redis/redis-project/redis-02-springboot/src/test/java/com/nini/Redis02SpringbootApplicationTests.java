@@ -2,6 +2,7 @@ package com.nini;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nini.pojo.User;
+import com.nini.utils.RedisUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,6 +14,9 @@ class Redis02SpringbootApplicationTests {
     @Autowired
     @Qualifier("redisTemplate")
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     @Test
     void contextLoads() {
@@ -35,6 +39,12 @@ class Redis02SpringbootApplicationTests {
 
         redisTemplate.opsForValue().set("mykey", "nini");
         System.out.println(redisTemplate.opsForValue().get("mykey"));
+    }
+
+    @Test
+    void testRedisUtil(){
+        redisUtil.set("name", "nini");
+        System.out.println(redisUtil.get("name"));
     }
 
     @Test

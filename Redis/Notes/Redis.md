@@ -2725,14 +2725,12 @@ Process finished with exit code 0
 
 ### 7.3 Redis工具类
 
-
-
 在真实开发中，一般会自己封装一个RedisUtil，而不是用原生开发。
 
-
+- 创建`src/main/java/com/nini/utils/RedisUtil.java`，将下面的代码拷贝到这个类中
 
 ```java
-package com.sugar.utils;
+package com.nini.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -3241,9 +3239,7 @@ public final class RedisUtil {
 
 
 
-测试Redis工具类
-
-
+- 测试上面这个Redis工具类
 
 ```java
 @SpringBootTest
@@ -3254,10 +3250,20 @@ class Redis02SpringbootApplicationTests {
 
 	@Test
 	void testRedisUtil() {
-		redisUtil.set("name", "sugar");
+		redisUtil.set("name", "nini");
 		System.out.println(redisUtil.get("name"));
 	}
 }
+
+==================testRedisUtil()运行结果=======================
+......
+nini
+Process finished with exit code 0
+==================终端查看keys * 的结果=======================
+127.0.0.1:6379> keys *
+1) "name"                   【成功添加 name:nini】
+2) "user"
+3) "user1"
 ```
 
 
