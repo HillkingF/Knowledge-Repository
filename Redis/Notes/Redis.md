@@ -3282,7 +3282,17 @@ Process finished with exit code 0
 
 
 
-#### 8.1 单位
+使用brew安装的redis，`brew list redis`可查看redis安装路径。
+
+进入安装路径下查看配置文件`redis.conf`。
+
+
+
+下面详细分析配置文件！
+
+
+
+### 8.1 单位
 
 配置文件对单位大小写不敏感
 
@@ -3290,15 +3300,15 @@ Process finished with exit code 0
 
 
 
-#### 8.2 引入配置文件
+### 8.2 引入配置文件
 
-类似Spring，可以用 import / include 标签将配置文件包含进来。
+类似Spring，可以用 import / include 标签将其他配置文件包含进来。
 
 ![img](img/1617798529709-dd21d689-8b48-4796-88dd-825c71c82f20.png)
 
 
 
-#### 8.3 网络
+### 8.3 网络
 
 ```bash
 bind 127.0.0.1  # 绑定的ip
@@ -3308,11 +3318,12 @@ port 6379  # 端口设置
 
 
 
-#### 8.4 通用
+### 8.4 通用
 
 ```bash
 daemonize yes  # 以守护进程的方式运行，默认是no，需开启为yes
 pidfile /var/run/redis_6379.pid  # 如果以后台方式运行，需要指定一个pid进程文件！
+
 # Specify the server verbosity level.
 # This can be one of:
 # debug (a lot of information, useful for development/testing)
@@ -3327,13 +3338,11 @@ always-show-logo yes  # 是否总是显示logo
 
 
 
-#### 8.5 快照（RDB配置）
+### 8.5 快照（RDB配置）
 
 
 
-持久化，在规定的时间内，执行了多少次，则会持久化到文件（**.rdb  .aof**）
-
-
+持久化，在规定的时间内，执行了多少次，则会持久化到文件（**.rdb  .aof**） 
 
 Redis是内存数据库，如果没有持久化，那么数据断电即失。
 
@@ -3346,16 +3355,16 @@ save 60 10000  # 60秒之内，如果至少10000个key进行修改，进行持�
 
 stop-writes-on-bgsave-error yes  # 持久化如果出错，是否还需要继续工作
 
-rdbcompression yes  # 是否压缩rdf文件（耗费一定CPU资源）
+rdbcompression yes  # 是否压缩rdb文件（耗费一定CPU资源）
 
-rdbchecksum yes  # 保存rdf文件的时候，运行错误时检查校验
+rdbchecksum yes  # 保存rdb文件的时候，运行错误时检查校验
 
-dir ./  # rdf文件保存的陆慕
+dir ./  # rdf文件保存的目录
 ```
 
 
 
-#### 8.6 REPLICATION  主从复制相关
+### 8.6 REPLICATION  主从复制相关
 
 ```bash
 replicaof <masterip> <masterport>  # 主从配置，配置主机Redis服务的IP和端口
@@ -3363,25 +3372,32 @@ replicaof <masterip> <masterport>  # 主从配置，配置主机Redis服务的IP
 
 
 
-#### 8.7 SECURITY  安全
+### 8.7 SECURITY  安全
 
 可以在配置文件中设置Redis的密码，默认是没有密码
 
-
+```bash
+# 可以在配置文件中设置密码，如下：
+requirepass 123456
+```
 
 ```bash
+# 也可以使用命令行设置密码，如下
+127.0.0.1:6379> config get requirepass           # 默认是没有密码的
+1) "requirepass"
+2) ""
 127.0.0.1:6379> config set requirepass "123456"  # 设置密码
 OK
-127.0.0.1:6379> config get requirepass  
+127.0.0.1:6379> config get requirepass           # 获取redis密码 
 1) "requirepass"
 2) "123456"
-127.0.0.1:6379> auth 123456  # 使用密码登录
+127.0.0.1:6379> auth 123456                      # 使用密码登录
 OK
 ```
 
 
 
-#### 8.8 限制 CLIENTS、MEMORY MANAGEMENT
+### 8.8 限制 CLIENTS、MEMORY MANAGEMENT
 
 ```bash
 maxclients 10000  # 设置能连接上Redis的最大客户端的数量
@@ -3399,9 +3415,7 @@ maxmemory-policy noeviction  # 内存到达上限之后的处理策略（六种
 
 
 
-#### 8.9 APPEND ONLY 模式（AOF配置）
-
-
+### 8.9 APPEND ONLY 模式（AOF配置）
 
 ```bash
 appendonly no  # 默认是不开启aof模式的，默认使用rdf方式持久化，在大部分情况下，rdf完全够用
@@ -3412,7 +3426,7 @@ appendfsync everysec  # 每秒执行一次sync，可能会丢失这1s的数据
 # appendfsync no			# 不执行 sync，这个时候操作系统自己同步数据，速度最快！
 ```
 
-
+具体的配置，我们在下一节中去详细讲解！
 
 
 
@@ -3430,11 +3444,11 @@ Redis 是内存数据库，如果不将内存中的数据库状态保存到磁�
 
 
 
-#### 9.1 RDB（Redis DataBase）
+### 9.1 RDB（Redis DataBase）
 
 
 
-##### 9.1.1 What is RDB
+#### 9.1.1 What is RDB
 
 
 
@@ -3465,7 +3479,7 @@ dbfilename dump.rdb
 
 
 
-##### 9.1.2 触发机制
+#### 9.1.2 触发机制
 
 
 
@@ -3479,7 +3493,7 @@ dbfilename dump.rdb
 
 
 
-##### 9.1.3 恢复 RDB 文件
+#### 9.1.3 恢复 RDB 文件
 
 
 
@@ -3496,7 +3510,7 @@ dbfilename dump.rdb
 
 
 
-##### 9.1.4 小结
+#### 9.1.4 小结
 
 
 
@@ -3514,11 +3528,11 @@ dbfilename dump.rdb
 
 
 
-#### 9.2 AOF（Append Only File）
+### 9.2 AOF（Append Only File）
 
 
 
-##### 9.2.1 What is AOF
+#### 9.2.1 What is AOF
 
 ![img](img/1617798849907-55066b6c-c03d-4b7c-b8b1-aa2e8caadc2b.png)
 
@@ -3532,7 +3546,7 @@ AOF 保存的是 `appendonly.aof` 文件。
 
 
 
-##### 9.2.2 APPEND ONLY MODE 配置文件
+#### 9.2.2 APPEND ONLY MODE 配置文件
 
 
 
@@ -3544,7 +3558,7 @@ AOF 保存的是 `appendonly.aof` 文件。
 
 
 
-##### 9.2.3 appendonly.aof 文件被破坏
+#### 9.2.3 appendonly.aof 文件被破坏
 
 
 
@@ -3574,7 +3588,7 @@ Successfully truncated AOF
 
 
 
-##### 9.2.4 重写规则说明
+#### 9.2.4 重写规则说明
 
 
 
@@ -3591,7 +3605,7 @@ auto-aof-rewrite-min-size 64mb  # 如果 aof 文件大于64m，就会fork一个�
 
 
 
-##### 9.2.5 小结
+#### 9.2.5 小结
 
 
 
@@ -3621,7 +3635,7 @@ appendfsync everysec  # 每秒执行一次sync，可能会丢失这1s的数据
 
 
 
-#### 9.3 对比RDB和AOF
+### 9.3 对比RDB和AOF
 
 
 
