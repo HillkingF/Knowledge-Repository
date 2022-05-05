@@ -3753,11 +3753,9 @@ Pub/Sub 从字面上理解就是发布（Publish）与订阅（Subscribe），�
 
 
 
-#### 11.1 What is 主从复制
+### 11.1 What is 主从复制
 
-
-
-主从复制，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为主节点（master/leader），后者称为从节点（slave/follower），数据的复制是单向的，只能由主节点到从节点。Master以写为主，Slave以读为主。
+主从复制，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为主节点（master/leader），后者称为从节点（slave/follower），*数据的复制是单向的，只能由主节点到从节点*。Master以写为主，Slave以读为主。
 
 
 
@@ -3789,22 +3787,31 @@ Pub/Sub 从字面上理解就是发布（Publish）与订阅（Subscribe），�
 
 ![img](img/1617799143523-026af549-692c-4418-9bea-c0c4f9aea6fe.png)
 
+只要在公司中，主从复制就是必须要使用的，因为在真实的项目中不可能单机使用Redis！
 
 
-#### 11.2 一主二从结构
 
 
 
-只配置从库，不用配置主库！
+### 11.2 一主二从结构
 
+**只配置从库，不用配置主库！**
 
+>  查看主库及对应从库的信息
 
 ```bash
-127.0.0.1:6379> info replication  # 查看当前库的信息
+# 启动一个redis服务器
+(base) hillking@fengwennideMacBook-Pro ~ % redis-server
+...
+
+# 启动一个redis客户端
+(base) hillking@fengwennideMacBook-Pro ~ % redis-cli -p 6379
+127.0.0.1:6379> info replication      # 查看当前库对应的信息
 # Replication
-role:master  # 角色 master
-connected_slaves:0  # 没有从机
-master_replid:606cd8aae7c660de42c429476232d739c26a6985
+role:master                           # 角色 master
+connected_slaves:0
+master_failover_state:no-failover     # 没有从机
+master_replid:87477436ddf6e8ba44660e58ec4c2c609fd82029
 master_replid2:0000000000000000000000000000000000000000
 master_repl_offset:0
 second_repl_offset:-1
@@ -3814,9 +3821,95 @@ repl_backlog_first_byte_offset:0
 repl_backlog_histlen:0
 ```
 
+> 配置
+
+1. 复制三个 Redis 配置文件，修改对应的信息。
+
+```bash
+# 进入redis安装目录中的bin目录，在自定义文件夹kconfig中拷贝至少三个配置文件如下：
+(base) hillking@fengwennideMacBook-Pro bin % cd kconfig
+(base) hillking@fengwennideMacBook-Pro kconfig % cp redis.conf redis79.conf
+(base) hillking@fengwennideMacBook-Pro kconfig % cp redis.conf redis80.conf
+(base) hillking@fengwennideMacBook-Pro kconfig % cp redis.conf redis81.conf
+(base) hillking@fengwennideMacBook-Pro kconfig % ls
+dump.rdb	redis.conf	redis79.conf	redis80.conf	redis81.conf
+```
+
+2. 修改端口
 
 
-复制三个 Redis 配置文件，修改对应的信息。
+
+**该看31个视频10分钟左右了，主要是修改是哪个配置文件**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3949,7 +4042,7 @@ Master 接到命令，启动后台的存盘进程，同时收集所有接收到�
 
 
 
-#### 11.3 层层链路结构
+### 11.3 层层链路结构
 
 
 
@@ -3965,7 +4058,7 @@ Master 接到命令，启动后台的存盘进程，同时收集所有接收到�
 
 
 
-#### 11.4 哨兵模式（工作中真正使用的模式）
+### 11.4 哨兵模式（工作中真正使用的模式）
 
 
 
