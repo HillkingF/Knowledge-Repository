@@ -3797,7 +3797,9 @@ Pub/Sub 从字面上理解就是发布（Publish）与订阅（Subscribe），�
 
 **只配置从库，不用配置主库！**
 
->  查看主库及对应从库的信息
+
+
+#### 11.2.1 查看库信息
 
 ```bash
 # 启动一个redis服务器
@@ -3821,9 +3823,13 @@ repl_backlog_first_byte_offset:0
 repl_backlog_histlen:0
 ```
 
-> 配置redis集群环境
 
-1. 复制三个 Redis 配置文件，修改对应的信息。
+
+#### 11.2.2 命令行配置redis集群：一主二从
+
+**使用命令行配置一主二从(一台主机拥有两台从机)，过程如下：**
+
+1. 复制三个Redis 配置文件用于启动三台伪主机
 
 ```bash
 # 进入redis安装目录中的bin目录，在自定义文件夹kconfig中拷贝至少三个配置文件如下：
@@ -3835,7 +3841,7 @@ repl_backlog_histlen:0
 dump.rdb	redis.conf	redis79.conf	redis80.conf	redis81.conf
 ```
 
-2. 修改端口
+2. 修改配置文件中的信息（端口、pid名字、日志、rdb文件等）
 
 ```bash
 # 修改第1个配置文件：vim redis79.conf  
@@ -3871,40 +3877,15 @@ dbfilename dump6381.rdb						# dump.rdb名字
   501  1246     1   0 10:48上午 ??         0:00.87 redis-server 127.0.0.1:6380 
   501  1273     1   0 10:49上午 ??         0:00.61 redis-server 127.0.0.1:6381 
   501  1305  1281   0 10:52上午 ttys003    0:00.00 grep redis
-```
 
-
-
-
-
-
-
-一主二从：一般情况下只用配置从机即可。一主（79）二从（80，81）
-
-
-
-**注意**：如果主机中没有出现从机，可能是因为主机设置了密码，一般密码**配从不配主**。
-
-
-
-```bash
-# 在从机中查看
-127.0.0.1:6380> slaveof 127.0.0.1 6379  # SLAVEOF host 6379 认定 master
-OK
-127.0.0.1:6380> info replication  
+# 启动三个redis server对应的客户端并查看库信息(下面只显示了79对应的客户端，80和81类似)
+(base) hillking@fengwennideMacBook-Pro bin % redis-cli -p 6379  # 启动客户端
+127.0.0.1:6379> info replication        # 查看库信息
 # Replication
-role:slave  # 当前角色 slave
-master_host:127.0.0.1  # 可以查看主机的信息
-master_port:6379
-master_link_status:down
-master_last_io_seconds_ago:-1
-master_sync_in_progress:0
-slave_repl_offset:1
-master_link_down_since_seconds:1610968547
-slave_priority:100
-slave_read_only:1
-connected_slaves:0
-master_replid:8f2f839d4d2b95bd00c5ba0016b8ec953f7c8076
+role:master                             # 默认server都是主机
+connected_slaves:0                      # 默认拥有0个从机
+master_failover_state:no-failover
+master_replid:642e20d1734fc24af7cfa98826264959037fcbcf
 master_replid2:0000000000000000000000000000000000000000
 master_repl_offset:0
 second_repl_offset:-1
@@ -3912,80 +3893,119 @@ repl_backlog_active:0
 repl_backlog_size:1048576
 repl_backlog_first_byte_offset:0
 repl_backlog_histlen:0
+```
 
-# 在主机中查看
+4. 设置从机
+
+```bash
+# 上一步中已经创建了三个redis服务器，默认情况下这三个服务器都是主机
+# 因此我们需要将其中两个设置为从机
+# 令79这个服务器为主机，80和81位79的从机（方法就是认老大）
+# 过程如下：
+
+===========================================================================
+# 启动80和81对应的客户端
+(base) hillking@fengwennideMacBook-Pro bin % redis-cli -p 6381
+# 使用slaveof选择宿主机：slave host port（host和port是宿主机的ip和端口号）
+127.0.0.1:6381> slaveof 127.0.0.1 6379    
+OK
+# 查看80/81redis服务器的信息，发现这两台服务器已经变成了从机
+127.0.0.1:6381> info replication
+role:slave                  # 角色：变成了79的从机
+master_host:127.0.0.1       # 宿主机ip
+master_port:6379            # 宿主机port
+master_link_status:up
+master_last_io_seconds_ago:6
+master_sync_in_progress:0
+slave_read_repl_offset:182
+slave_repl_offset:182
+slave_priority:100
+slave_read_only:1
+replica_announced:1
+connected_slaves:0
+master_failover_state:no-failover
+master_replid:4120c78325614f3a6153f7f08f15e35587912146
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:182
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:169
+repl_backlog_histlen:14
+
+===========================================================================
+# 在6379服务器对应的客户端下查看信息：发现多了两个从机
 127.0.0.1:6379> info replication
 # Replication
 role:master
-connected_slaves:1  # 多了从机的配置
-slave0:ip=127.0.0.1,port=6380,state=online,offset=14,lag=0  
-master_replid:c9b5b2c30b49ae04fa0b8bfb7b6618f16d673f0c
+connected_slaves:2            # 有两个从机
+slave0:ip=127.0.0.1,port=6380,state=online,offset=672,lag=1 # 从机的ip，port等
+slave1:ip=127.0.0.1,port=6381,state=online,offset=672,lag=1 # 从机的ip，port等
+master_failover_state:no-failover
+master_replid:4120c78325614f3a6153f7f08f15e35587912146
 master_replid2:0000000000000000000000000000000000000000
-master_repl_offset:14
+master_repl_offset:672
 second_repl_offset:-1
 repl_backlog_active:1
 repl_backlog_size:1048576
 repl_backlog_first_byte_offset:1
-repl_backlog_histlen:14
+repl_backlog_histlen:672
 ```
 
-
-
-配置完毕后，主机将有两个从机节点。
-
-
-
-真实环境中，主从配置应该是在配置文件中配置，这样的是永久的。这里用命令配置的是暂时的。
+**注意**：如果主机中没有出现从机，可能是因为主机设置了密码，一般密码**配从不配主**。
 
 
 
-细节
+#### 11.2.3 配置文件配置redis集群：一主二从
+
+真实环境中，主从配置应该是在配置文件中配置，这样的是永久的。在配置文件中修改下面的信息。
+
+![img](img/%E6%88%AA%E5%B1%8F2022-05-06%2013.26.15.png)
 
 
 
-主机可以写，从机不能写只能读！主机中的所有信息和数据，都会自动被从机保存！
+#### 11.2.4 注意点
 
-
+> 主机可以写，从机不能写只能读！主机中的所有信息和数据，都会自动被从机保存！
 
 **主机写**
 
-![img](img/1617799204570-0abd479c-5b87-42f3-ae5a-bb70c8c89493.png)
-
-
+```bash
+127.0.0.1:6379> set k1 v1  # 在79主机上写入k1 v1
+OK
+```
 
 **从机读**
 
-![img](img/1617799212271-df340692-e2f1-47d5-88f7-7acc639d33bc.png)
+```bash
+127.0.0.1:6380> get k1     # 80从机上出现了k1 v1
+"v1"
+127.0.0.1:6381> get k1     # 81从机上出现了k1 v1
+"v1"
+```
+
+**从机不能写**
+
+```bash
+127.0.0.1:6381> set k2 v2
+(error) READONLY You can't write against a read only replica.
+```
+
+> 若主机宕机，从机依然是连接到主机的，但是没有写操作；这时如果主机回来了，从机依旧可以直接同步到主机写的信息。
+
+> 使用命令行配置主从时，如果从机断开重启了，从机就会变回主机！但这时再通过命令行将其变为从机，会立即从主机同步所有数据。
 
 
 
-**测试：**若主机宕机，从机依然是连接到主机的，但是没有写操作；这是如果主机回来了，从机依旧可以直接同步到主机写的信息。
+#### 11.2.5 复制原理
 
+- Slaveof 启动成功连接到 master 后会发送一个同步（sync） 命令。
 
+- Master 接到命令，启动后台的存盘进程，同时收集所有接收到的用于修改数据集命令，在后台进程执行完毕之后，master 将传送整个数据文件到 slave，并完成一次完全同步。
 
-如果是使用命令行配置主从的，如果从机断开重启了，就会变回主机！但这是通过命令行将其变为从机，会立即从主机同步所有数据。
-
-
-
-复制原理
-
-
-
-Slave 启动成功连接到 master 后会发送一个 sync 命令。
-
-
-
-Master 接到命令，启动后台的存盘进程，同时收集所有接收到的用于修改数据集命令，在后台进程执行完毕之后，master 将传送整个数据文件到 slave，并完成一次完全同步。
-
-
-
-**全量复制**：而 Slave 服务在接收到数据库文件数据后，将其存盘并加载到内存中。
-
-
+**全量复制**：而 Slave 服务在接收到数据库文件数据后，将其存盘并加载到内存中（主机中的全部信息一次性拷贝到从机中）。
 
 **增量复制**：Master 继续将新的所有收集到的修改命令一次传给 Slave，完成同步。
-
-
 
 但是只要重新连接 master，一次完全同步（全量复制）将被自动执行。数据一定可以在从机中看到。
 
