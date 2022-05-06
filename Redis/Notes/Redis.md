@@ -3821,7 +3821,7 @@ repl_backlog_first_byte_offset:0
 repl_backlog_histlen:0
 ```
 
-> 配置
+> 配置redis集群环境
 
 1. 复制三个 Redis 配置文件，修改对应的信息。
 
@@ -3837,96 +3837,45 @@ dump.rdb	redis.conf	redis79.conf	redis80.conf	redis81.conf
 
 2. 修改端口
 
-
-
-**该看31个视频10分钟左右了，主要是修改是哪个配置文件**
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ```bash
+# 修改第1个配置文件：vim redis79.conf  
 port 6379  												# 端口
-pidfile /var/run/redis_6379.pid		# pid名字
+pidfile /var/run/redis_6379.pid		# 后台运行的pid名字
 logfile "6379.log"								# log文件名字
 dbfilename dump6379.rdb						# dump.rdb名字
+
+# 修改第2个配置文件：vim redis80.conf  
+port 6380  												# 端口
+pidfile /var/run/redis_6380.pid		# 后台运行的pid名字
+logfile "6380.log"								# log文件名字
+dbfilename dump6380.rdb						# dump.rdb名字
+
+# 修改第3个配置文件：vim redis81.conf  
+port 6381  												# 端口
+pidfile /var/run/redis_6381.pid		# 后台运行的pid名字
+logfile "6381.log"								# log文件名字
+dbfilename dump6381.rdb						# dump.rdb名字
+```
+
+3. 启动三个 Redis 服务，默认三台都是 master。
+
+```bash
+# 在三个窗口中分别用三个配置文件启动redis服务（配置文件中已经设置了后台运行）
+(base) hillking@fengwennideMacBook-Pro bin % redis-server kconfig/redis79.conf
+(base) hillking@fengwennideMacBook-Pro bin % redis-server kconfig/redis80.conf
+(base) hillking@fengwennideMacBook-Pro bin % redis-server kconfig/redis81.conf
+
+# 查看redis进程信息：前三个就是启动的redis服务
+(base) hillking@fengwennideMacBook-Pro ~ % ps -ef|grep redis
+  501  1236     1   0 10:46上午 ??         0:01.42 redis-server 127.0.0.1:6379 
+  501  1246     1   0 10:48上午 ??         0:00.87 redis-server 127.0.0.1:6380 
+  501  1273     1   0 10:49上午 ??         0:00.61 redis-server 127.0.0.1:6381 
+  501  1305  1281   0 10:52上午 ttys003    0:00.00 grep redis
 ```
 
 
 
-启动三个 Redis 服务，默认三台都是 master。
 
-
-
-![img](../../../../../../sugar/Library/Application%20Support/typora-user-images/image-20210118191145945.png)
 
 
 
