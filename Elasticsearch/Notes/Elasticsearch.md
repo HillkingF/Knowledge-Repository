@@ -140,6 +140,57 @@ Posman是一款网页调试工具，提供强大的WebAPI和HTTP请求调试功�
 
 
 
+### 2.3 数据格式
+
+Elasticsearch是面向文档型的数据库，一条数据就是一个文档。ES存储文档数据和MySQL存储数据类比如下：
+
+![img](img/%E6%88%AA%E5%B1%8F2022-05-07%2016.27.18.png)
+
+Index：相当于库
+
+Types：相当于表（ES 7.x中Type的概念已经被删除了）
+
+Documents：相当于表的行
+
+Fields：类似于列
+
+
+
+
+
+### 2.4 索引操作
+
+#### 1）创建索引
+
+对比关系型数据库，创建索引就等同于创建数据库。
+
+步骤：
+
+- 启动ES：bin目录下双击elasticsearch文件
+- 打开Postman创建一个连接
+
+在Postman中，像ES服务器发PUT请求：http://127.0.0.1:9200/shopping
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Elasticsearch环境
 
 
