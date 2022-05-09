@@ -73,7 +73,7 @@ ES最新的版本是8.2(截止2022.5.7)
 
 选择7.8.0版本，macos下载得到一个安装包，解压如下：
 
-<img src="/Users/hillking/MyDocuments/GitHub/Knowledge-Repository/Elasticsearch/Notes/img/%E6%88%AA%E5%B1%8F2022-05-07%2012.32.42.png" style="zoom:50%;" />
+<img src="img/1.png" style="zoom:50%;" />
 
 #### 2.1.2 启动软件
 
@@ -118,7 +118,7 @@ ES最新的版本是8.2(截止2022.5.7)
 
 - 双击启动窗口闪退，通过路径访问追踪错误，如果是“空间不足”，可以修改`config/jvm.options`配置文件
 
-  ![](/Users/hillking/MyDocuments/GitHub/Knowledge-Repository/Elasticsearch/Notes/img/%E6%88%AA%E5%B1%8F2022-05-07%2013.44.17.png)
+  ![](img/2.png)
 
 
 
@@ -144,7 +144,7 @@ Posman是一款网页调试工具，提供强大的WebAPI和HTTP请求调试功�
 
 Elasticsearch是面向文档型的数据库，一条数据就是一个文档。ES存储文档数据和MySQL存储数据类比如下：
 
-![img](img/%E6%88%AA%E5%B1%8F2022-05-07%2016.27.18.png)
+![img](img/3.png)
 
 Index：相当于库
 
@@ -168,10 +168,42 @@ Fields：类似于列
 
 - 启动ES：bin目录下双击elasticsearch文件
 - 打开Postman创建一个连接
+- 在Postman中，向ES服务器发PUT请求：http://127.0.0.1:9200/shopping。显示如下第7步中的json字符串时就表示创建成功了。（PUT请求就表示创建）![img](img/4.png)
 
-在Postman中，像ES服务器发PUT请求：http://127.0.0.1:9200/shopping
 
 
+经过上面的步骤就创建好了一个索引，下面查看：
+
+- 将PUT换成GET，会显示`http://127.0.0.1:9200/shopping`的索引信息，即如下json字符串：
+
+  ```json
+  {
+      "shopping": {
+          "aliases": {},
+          "mappings": {},
+          "settings": {
+              "index": {
+                  "creation_date": "1652061957838",
+                  "number_of_shards": "1",
+                  "number_of_replicas": "1",
+                  "uuid": "AFGvm8QpRJWILQ0_JrcOyg",
+                  "version": {
+                      "created": "7080099"
+                  },
+                  "provided_name": "shopping"
+              }
+          }
+      }
+  }
+  ```
+
+- 另外也可以使用`http://127.0.0.1:9200/_cat/indices?v`来查看当前所有的索引：
+
+  <img src="img/5.png" style="zoom:67%;" />
+
+- 使用DELETE方法来删除索引
+
+  <img src="img/6.png" alt="img" style="zoom:67%;" />
 
 
 
