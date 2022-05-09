@@ -160,7 +160,7 @@ Fields：类似于列
 
 ### 2.4 索引操作
 
-> 创建索引
+#### 1）创建索引
 
 对比关系型数据库，创建索引就等同于创建数据库。
 
@@ -171,6 +171,8 @@ Fields：类似于列
 - 在Postman中，向ES服务器发PUT请求：http://127.0.0.1:9200/shopping。显示如下第7步中的json字符串时就表示创建成功了。（**PUT请求就表示创建**）![img](img/4.png)
 
 
+
+#### 2）查看索引信息
 
 经过上面的步骤就创建好了一个索引，下面查看：
 
@@ -201,6 +203,10 @@ Fields：类似于列
 
   <img src="img/5.png" style="zoom:67%;" />
 
+
+
+#### 3）删除索引
+
 - 使用**DELETE方法**来删除索引
 
   <img src="img/6.png" alt="img" style="zoom:67%;" />
@@ -209,7 +215,7 @@ Fields：类似于列
 
 ### 2.5 文档操作
 
-> 创建文档
+#### 1）创建文档
 
 在上一小节中已经创建好了索引，接下来创建文档并添加数据。这里的文档可以类比为关系型数据库中的表数据，添加的数据格式为JSON格式。步骤如下：
 
@@ -236,7 +242,7 @@ Fields：类似于列
 
   <img src="img/8.png" alt="img" style="zoom:80%;" />
 
-  在上图中，返回结果中有一个`_id`，每次点击send按钮，这个值都会改变：
+  在上图中，返回结果中有一个`_id`(相当于主键)，每次点击send按钮，这个值都会改变：
 
   ![img](img/9.png)
 
@@ -244,7 +250,41 @@ Fields：类似于列
 
   <img src="img/10.png" alt="img" style="zoom:67%;" />
 
-  
+#### 2）查询文档
+
+> "主键"查询
+
+使用**GET方法**来查询文档，URL中`_doc`表示文档数据，`/1001`表示文档ID。查询结果中`found:`表示是否查询到结果。
+
+- 文档存在的查询结果如下：
+
+<img src="img/11.png" alt="img" style="zoom:80%;" />
+
+- 文档不存在的查询结果如下：
+
+  <img src="img/13.png" alt="img" style="zoom:80%;" />
+
+> 全部查询
+
+使用**_search**来进行全部查询，使用**GET方法**。
+
+查询时需要删除body中的数据，不然会报`"reason": "Unknown key for a VALUE_STRING in [title]."`错误。
+
+<img src="img/14.png" alt="img" style="zoom:80%;" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
