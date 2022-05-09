@@ -160,7 +160,7 @@ Fields：类似于列
 
 ### 2.4 索引操作
 
-#### 1）创建索引
+> 创建索引
 
 对比关系型数据库，创建索引就等同于创建数据库。
 
@@ -168,7 +168,7 @@ Fields：类似于列
 
 - 启动ES：bin目录下双击elasticsearch文件
 - 打开Postman创建一个连接
-- 在Postman中，向ES服务器发PUT请求：http://127.0.0.1:9200/shopping。显示如下第7步中的json字符串时就表示创建成功了。（PUT请求就表示创建）![img](img/4.png)
+- 在Postman中，向ES服务器发PUT请求：http://127.0.0.1:9200/shopping。显示如下第7步中的json字符串时就表示创建成功了。（**PUT请求就表示创建**）![img](img/4.png)
 
 
 
@@ -197,19 +197,54 @@ Fields：类似于列
   }
   ```
 
-- 另外也可以使用`http://127.0.0.1:9200/_cat/indices?v`来查看当前所有的索引：
+- 另外也可以使用`http://127.0.0.1:9200/_cat/indices?v`来查看当前所有的索引（**_cat/indices?v**）：
 
   <img src="img/5.png" style="zoom:67%;" />
 
-- 使用DELETE方法来删除索引
+- 使用**DELETE方法**来删除索引
 
   <img src="img/6.png" alt="img" style="zoom:67%;" />
 
 
 
+### 2.5 文档操作
 
+> 创建文档
 
+在上一小节中已经创建好了索引，接下来创建文档并添加数据。这里的文档可以类比为关系型数据库中的表数据，添加的数据格式为JSON格式。步骤如下：
 
+- 启动ES：bin目录下双击elasticsearch文件
+
+- 打开Postman创建一个连接
+
+- 在Postman中，向ES服务器发POST请求：http://127.0.0.1:9200/shopping/_doc（**_doc表示在索引中添加文档数据**）。如下图中，响应信号返回一个错误。
+
+  这个错误是说：请求体是必须要有的，现在没有请求体
+
+  <img src="img/7.png" alt="img" style="zoom:67%;" />
+
+  在Body中增加JSON格式的请求体如下，设置成功后会显示"created"：
+
+  ```json
+  {
+    "title":"小米手机",
+    "category":"小米",
+    "images":"http://www.gulixueyuan.com/xm.jpg",
+    "price":3999.00
+  }
+  ```
+
+  <img src="img/8.png" alt="img" style="zoom:80%;" />
+
+  在上图中，返回结果中有一个`_id`，每次点击send按钮，这个值都会改变：
+
+  ![img](img/9.png)
+
+  可以在URL后增加id，那么此处的`_id`就不会改变了：
+
+  <img src="img/10.png" alt="img" style="zoom:67%;" />
+
+  
 
 
 
