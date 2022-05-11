@@ -252,7 +252,7 @@ Fields：类似于列
 
 ### 4.2 查询文档(查)
 
-> "主键"查询
+#### 1）"主键"查询
 
 使用**GET方法**来查询文档，URL中`_doc`表示文档数据，`/1001`表示文档ID。查询结果中`found:`表示是否查询到结果。
 
@@ -264,13 +264,157 @@ Fields：类似于列
 
   <img src="img/13.png" alt="img" style="zoom:80%;" />
 
-> 全部查询
 
-使用**_search**来进行全部查询，使用**GET方法**。
 
-查询时需要删除body中的数据，不然会报`"reason": "Unknown key for a VALUE_STRING in [title]."`错误。
+#### 2）全部查询
+
+> 两种操作的查询方式
+
+- 路径查询：URL中使用`_search`来进行全部查询，使用`GET方法`，但是body中不能有数据
+- 请求体查询：URL`_search`，使用`GET方法`，body中`query`+`match_all`匹配全局查询条件
+
+
+
+> 实例演示
+
+- URL路径查询：
+
+  使用`_search`来进行全部查询，使用`GET方法`。
+
+  查询时需要删除body中的数据，不然会报`"reason": "Unknown key for a VALUE_STRING in [title]."`错误。
 
 <img src="img/14.png" alt="img" style="zoom:80%;" />
+
+
+
+- 请求体查询：url中增加`_search`，body请求体中`query`+`match_all`匹配全局查询，`GET`方法
+
+![img](img/21.png)
+
+
+
+#### 3）条件查询
+
+> 介绍两种条件查询方法
+
+使用`GET方法`可以有以下两种查询方法：
+
+- 路径查询：`_search?q=字段:值`
+- 请求体查询：url`_search`，body中`match`
+
+
+
+> 实例演示：
+
+- 路径查询：`_search`表示查询，`q=字段:值`用来匹配条件，`GET`方法
+
+<img src="img/19.png" alt="img" style="zoom:80%;" />
+
+- 请求体查询：URL中只写`_search`，body请求体中使用`query`+`match`匹配条件，`GET`方法
+
+  (注意：`query`+`match_all`表示全局查询)
+
+<img src="img/20.png" alt="img"  />
+
+
+
+#### 4）分页查询
+
+使用`GET`方法，url`_search`：
+
+- 然后body请求体`query`+`match_all`查询全部数据，
+- body请求体`from`确定页起始（`(页码-1)*每一页数据条数`）
+- body请求体`size`确定每一页条数
+- body请求体`"_source":["字段"]`查询特定的字段
+- body请求体`sort`+`字段`+`"order":asc或desc`排序
+
+![img](img/22.png)
+
+
+
+#### 5）多条件组合查询
+
+将多个条件组合在一起查询时，请求体应该怎么写？
+
+`GET`方法，url`_search`(http://127.0.0.1:9200/shopping/_search)，body`raw`+`JSON`，然后写入以下数据：
+
+- 多个条件同时成立
+
+```json
+{
+	"query":{    // 表示查询
+		"bool":{   // 表示条件
+			"must":[ // 表示多个条件同时成立
+				{      // 第1个条件
+					"match":{  // 匹配规则
+						"category":"小米"
+					}
+				},
+				{            // 第2个条件
+					"match":{  // 匹配规则
+						"price":3999.00
+					}
+				}
+			]
+		}
+	}
+}
+```
+
+- 多个相同的条件只要有一个成立就可以
+
+```json
+{
+	"query":{    // 表示查询
+		"bool":{   // 表示条件
+			"should":[ // 表示多个条件同时成立
+				{      // 第1个条件
+					"match":{  // 匹配规则
+						"category":"小米"
+					}
+				},
+				{            // 第2个条件
+					"match":{  // 匹配规则
+						"category":"华为"
+					}
+				}
+			]
+		}
+	}
+}
+```
+
+- 范围查询（字段值>,<,≤......）：增加`filter`+`range`+`字段`+`gt等`
+
+```json
+{
+	"query":{    // 表示查询
+		"bool":{   // 表示条件
+			"should":[ // 表示多个条件同时成立
+				{      // 第1个条件
+					"match":{  // 匹配规则
+						"category":"小米"
+					}
+				},
+				{            // 第2个条件
+					"match":{  // 匹配规则
+						"category":"华为"
+					}
+				}
+			],
+      "filter":{     // 过滤条件
+        "range":{    // 查询范围
+          "price":{  // 对应的字段
+            "gt":1000// gt表示大于，这里是price字段>1000的记录
+          }
+        }
+      }
+		}
+	}
+}
+```
+
+
 
 
 
