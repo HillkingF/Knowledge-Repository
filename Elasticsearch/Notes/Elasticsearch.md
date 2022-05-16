@@ -512,8 +512,6 @@ ES中有映射的概念，
      }
      ```
 
-   - 
-
 
 
 
@@ -570,15 +568,99 @@ ES中有映射的概念，
 
 
 
+## 第5章 JavaAPI
+
+### 5.1 Elasticsearch环境准备
+
+ES软件是由Java语言开发的，所以也可以通过JavaAPI的方式对ES服务进行访问。
+
+IDEA和ES结合使用的步骤如下。
+
+
+
+> 1. 创建maven项目
+
+首先创建maven项目`ElasticsearchProject`，在项目中新建`es-test`模块。
+
+在`es-test`模块中添加es相关的依赖如下：
+
+```xml
+    <dependencies>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>7.8.0</version>
+        </dependency>
+
+        <!--elasticsearch客户端-->
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>7.8.0</version>
+        </dependency>
+
+        <!--elasticsearch 依赖2.x的log4j-->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.9</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+    </dependencies>
+```
+
+> 2. 创建java类测试
+
+先创建包`com.nini.es.test`，然后创建类`ESTest_Client.java`：
+
+```java
+package com.nini.es.test;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+
+import java.io.IOException;
+
+public class ESTest_Client {
+    public static void main(String[] args) throws IOException {
+        // 创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+
+        // 关闭es客户端
+        restHighLevelClient.close();
+    }
+}
+```
+
+运行上述代码，如果正常结束则说明`es连接成功，并且能正常结束`：
+
+```java
+/Users/hillking/Environment/Java/JDK/jdk-11.0.12.jdk/Contents/Home/bin/java ...
+
+Process finished with exit code 0
+```
+
+之后就可以在此基础上进行**coding**了!
 
 
 
 
-
-
-
-
-Elasticsearch环境
 
 
 
