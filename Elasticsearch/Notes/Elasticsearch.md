@@ -568,7 +568,7 @@ ES中有映射的概念，
 
 
 
-## 第5章 JavaAPI
+## 第5章 ES之JavaAPI
 
 ### 5.1 Elasticsearch环境准备
 
@@ -657,6 +657,65 @@ Process finished with exit code 0
 ```
 
 之后就可以在此基础上进行**coding**了!
+
+
+
+
+
+### 5.2 索引操作
+
+在ES服务启动的状态下(终端运行bin目录中的文件)，继5.1节中的操作后，创建`ESTest_Index_Create.java`。在本地没有`user`索引的条件下，使用下面的代码可以创建`user`索引：
+
+```java
+package com.nini.es.test;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
+import java.io.IOException;
+
+public class ESTest_Index_Create {
+    public static void main(String[] args) throws IOException {
+        // 创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 创建索引
+        CreateIndexRequest request = new CreateIndexRequest("user");   // 创建名字为user的索引
+        CreateIndexResponse response = restHighLevelClient.indices().create(request, RequestOptions.DEFAULT);// create方法第二个参数是一个默认的参数，直接使用
+
+        // 响应状态
+        boolean acknowledged = response.isAcknowledged();
+        System.out.println("索引操作：" + acknowledged);
+
+
+        // 关闭es客户端
+        restHighLevelClient.close();
+    }
+}
+
+=================================================================================
+其中创建索引的关键步骤为：
+// 创建索引
+CreateIndexRequest request = new CreateIndexRequest("user");   // 创建名字为user的索引
+CreateIndexResponse response = restHighLevelClient.indices().create(request, RequestOptions.DEFAULT);// create方法第二个参数是一个默认的参数，直接使用
+
+// 响应状态
+boolean acknowledged = response.isAcknowledged();
+```
+
+运行后的返回结果如下说明响应成功：
+
+```java
+/Users/hillking/Environment/Java/JDK/jdk-11.0.12.jdk/Contents/Home/bin/java ...
+索引操作：true
+
+Process finished with exit code 0
+```
+
+
 
 
 
