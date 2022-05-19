@@ -715,7 +715,7 @@ boolean acknowledged = response.isAcknowledged();
 Process finished with exit code 0
 ```
 
-
+此时可以使用Postman验证索引`user`是否创建成功!
 
 
 
