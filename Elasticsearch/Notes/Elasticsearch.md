@@ -664,6 +664,8 @@ Process finished with exit code 0
 
 ### 5.2 索引操作
 
+#### 1）创建索引
+
 在ES服务启动的状态下(终端运行bin目录中的文件)，继5.1节中的操作后，创建`ESTest_Index_Create.java`。在本地没有`user`索引的条件下，使用下面的代码可以创建`user`索引：
 
 ```java
@@ -715,9 +717,98 @@ boolean acknowledged = response.isAcknowledged();
 Process finished with exit code 0
 ```
 
-此时可以使用Postman验证索引`user`是否创建成功!
+此时可以使用Postman验证索引`user`是否创建成功!                                                                        
 
 
+
+#### 2）查询索引
+
+在ES服务启动的情况下，IDEA创建`ESTest_Index_Search.java`
+
+```java
+package com.nini.es.test;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.client.indices.GetIndexResponse;
+import java.io.IOException;
+
+public class ESTest_Index_Search {
+    public static void main(String[] args) throws IOException {
+        // 创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 查询索引
+        GetIndexRequest request = new GetIndexRequest("user");   // 获取名字为user的索引
+        GetIndexResponse response = restHighLevelClient.indices().get(request, RequestOptions.DEFAULT);// get方法获取响应，其第二个参数是一个默认的参数，直接使用
+
+        // 获取响应相关的信息
+        System.out.println(response.getAliases());
+        System.out.println(response.getMappings());
+        System.out.println(response.getSettings());
+
+        // 关闭es客户端
+        restHighLevelClient.close();
+    }
+}
+
+======================================================================
+打印的信息如下：
+/Users/hillking/Environment/Java/JDK/jdk-11.0.12.jdk/Contents/Home/bin/java ...
+{user=[]}
+{user=org.elasticsearch.cluster.metadata.MappingMetadata@8bca4371}
+{user={"index.creation_date":"1652929389272","index.number_of_replicas":"1","index.number_of_shards":"1","index.provided_name":"user","index.uuid":"LlMYNJvLToetXDuw3FC8FA","index.version.created":"7080099"}}
+
+Process finished with exit code 0
+```
+
+
+
+#### 3）删除索引
+
+在ES服务启动的情况下，IDEA创建`ESTest_Index_Delete.java`
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.client.indices.GetIndexResponse;
+
+import java.io.IOException;
+
+public class ESTest_Index_Delete {
+    public static void main(String[] args) throws IOException {
+        // 创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 删除索引
+        DeleteIndexRequest request = new DeleteIndexRequest("user");   // 删除名字为user的索引
+        AcknowledgedResponse response = restHighLevelClient.indices().delete(request, RequestOptions.DEFAULT);// Delete方法获取响应，其第二个参数是一个默认的参数，直接使用
+
+        // 获取响应信息
+        System.out.println(response.isAcknowledged());
+
+        // 关闭es客户端
+        restHighLevelClient.close();
+    }
+}
+===================运行结果如下==============================
+true
+  
+Process finished with exit code 0
+```
 
 
 
