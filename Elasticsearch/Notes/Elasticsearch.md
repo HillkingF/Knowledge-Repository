@@ -816,6 +816,8 @@ Process finished with exit code 0
 
 #### 1）插入文档
 
+> 单条数据插入
+
 在ES服务终端启动的情况下，使用IDEA进行数据插入。
 
 - 首先创建`User.java`实体类，用于生成数据
@@ -898,9 +900,67 @@ Process finished with exit code 0
 
 
 
+> 多条数据批量插入
+
+在ES服务启动的情况下，创建`ESTest_Doc_Insert_Batch.java`批量插入数据的类，然后运行这个类查看结果。
+
+```java
+package com.nini.es.test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.xcontent.XContentType;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Insert_Batch {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建批量操作请求体
+        BulkRequest request = new BulkRequest();
+
+        // 3.使用add()方法向请求体中添加多条数据
+        request.add(new IndexRequest().index("user").id("1001").source(XContentType.JSON,"name","张三") );
+        request.add(new IndexRequest().index("user").id("1002").source(XContentType.JSON,"name","李四") );
+        request.add(new IndexRequest().index("user").id("1003").source(XContentType.JSON,"name","王五") );
+
+        // 4.将包含多条数据的请求体放入es客户端，使用bulk()方法进行批量传递
+        BulkResponse response = esClient.bulk(request, RequestOptions.DEFAULT);
+
+        // 5.查看返回的响应信息
+        System.out.println(response.getTook());  //查看时间消耗
+        System.out.println(response.getItems());
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行结果如下：
+
+```java
+87ms
+[Lorg.elasticsearch.action.bulk.BulkItemResponse;@70f59913
+
+Process finished with exit code 0
+```
+
+
+
 #### 2）修改文档
 
-在ES服务启动的情况下(IDEA终端ES的bin目录下输入`./elasticsearch`)，创建更新文档数据的类并运行：
+在ES服务启动的情况下(IDEA终端ES的bin目录下输入`./elasticsearch`)，创建更新文档数据的类`ESTest_Doc_Update.java`并运行：
 
 ```java
 package com.nini.es.test;
@@ -952,21 +1012,177 @@ Process finished with exit code 0
 
 
 
+#### 3）查询文档
+
+在ES服务启动的情况下(IDEA终端ES的bin目录下输入`./elasticsearch`)，创建查询文档数据的类`ESTest_Doc_Get.java`并运行，从而查看`user`索引下`1001`id的数据：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.xcontent.XContentType;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Get {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        GetRequest request = new GetRequest();
+        request.index("user").id("1001"); // 指定查询的索引和id
+
+        // 3、向ES查询数据并得到返回的响应信息，get()方法
+        GetResponse response = esClient.get(request, RequestOptions.DEFAULT);
+
+        // 4、此时可以使用getxxx()等方法查看返回的响应信息
+        System.out.println(response.getSourceAsString());
+
+        // 5、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行后的查询到的结果如下：
+
+```java
+{"name":"nini","sex":"女","age":30}
+
+Process finished with exit code 0
+```
+
+
+
+
+
+#### 4）删除文档
+
+> 单条数据删除
+
+在ES服务启动的情况下(IDEA终端ES的bin目录下输入`./elasticsearch`)，创建删除文档数据的类`ESTest_Doc_Delete.java`并运行：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Delete {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据删除请求)
+        DeleteRequest request = new DeleteRequest();
+        request.index("user").id("1001"); // 指定需要删除数据的索引和id
+
+        // 3、向ES删除数据并得到返回的响应信息，delete()方法
+        DeleteResponse response = esClient.delete(request, RequestOptions.DEFAULT);
+
+        // 4、此时可以查看返回的响应结果
+        System.out.println(response.toString());
+
+        // 5、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+以上代码运行后删除了id`1001`:
+
+```java
+DeleteResponse[index=user,type=_doc,id=1001,version=3,result=deleted,shards=ShardInfo{total=2, successful=1, failures=[]}]
+
+Process finished with exit code 0
+```
+
+
+
+> 多条数据批量删除
+
+在ES服务启动的情况下，创建`ESTest_Doc_Delete_Batch.java`批量删除数据的类，然后运行这个类查看结果。
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.xcontent.XContentType;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Delete_Batch {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建批量操作请求体
+        BulkRequest request = new BulkRequest();
+
+        // 3.使用add()方法向请求体中添加多条删除指令：删除id号为1001、1002、1003的记录
+        request.add(new DeleteRequest().index("user").id("1001"));
+        request.add(new DeleteRequest().index("user").id("1002"));
+        request.add(new DeleteRequest().index("user").id("1003"));
+
+        // 4.将包含多条删除指令的请求体放入es客户端，使用bulk()方法进行批量传递
+        BulkResponse response = esClient.bulk(request, RequestOptions.DEFAULT);
+
+        // 5.查看返回的响应信息
+        System.out.println(response.getTook());  //查看时间消耗
+        System.out.println(response.getItems());
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行结果如下：
+
+```java
+87ms
+[Lorg.elasticsearch.action.bulk.BulkItemResponse;@8ad6665
+
+Process finished with exit code 0
+```
+
+
+
+
+
+
+
 
 
 /Users/hillking/Environment/Elasticsearch/elasticsearch-7.8.0/bin
 
 
-
-
-
-
-
-#### 3）
-
-
-
-#### 4）
 
 
 
