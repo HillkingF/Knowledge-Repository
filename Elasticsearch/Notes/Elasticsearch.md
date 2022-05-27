@@ -1014,6 +1014,8 @@ Process finished with exit code 0
 
 #### 3）查询文档
 
+> 查询单条数据
+
 在ES服务启动的情况下(IDEA终端ES的bin目录下输入`./elasticsearch`)，创建查询文档数据的类`ESTest_Doc_Get.java`并运行，从而查看`user`索引下`1001`id的数据：
 
 ```java
@@ -1060,6 +1062,60 @@ public class ESTest_Doc_Get {
 
 Process finished with exit code 0
 ```
+
+
+
+> 全量查询：查询全部数据
+
+首先批量创建一些数据，用于之后的查询：
+
+```java
+package com.nini.es.test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.xcontent.XContentType;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Insert_Batch {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建批量操作请求体
+        BulkRequest request = new BulkRequest();
+
+        // 3.使用add()方法向请求体中添加多条数据
+        request.add(new IndexRequest().index("user").id("1001").source(XContentType.JSON,"name","张三","age",30,"sex","男") );
+        request.add(new IndexRequest().index("user").id("1002").source(XContentType.JSON,"name","李四","age",30,"sex","女") );
+        request.add(new IndexRequest().index("user").id("1003").source(XContentType.JSON,"name","王五","age",40,"sex","男") );
+        request.add(new IndexRequest().index("user").id("1004").source(XContentType.JSON,"name","王五1","age",40,"sex","女") );
+        request.add(new IndexRequest().index("user").id("1005").source(XContentType.JSON,"name","王五2","age",50,"sex","男") );
+        request.add(new IndexRequest().index("user").id("1006").source(XContentType.JSON,"name","王五3","age",50,"sex","男") );
+
+        // 4.将包含多条数据的请求体放入es客户端，使用bulk()方法进行批量传递
+        BulkResponse response = esClient.bulk(request, RequestOptions.DEFAULT);
+
+        // 5.查看返回的响应信息
+        System.out.println(response.getTook());  //查看时间消耗
+        System.out.println(response.getItems());
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+然后再ES服务启动的条件下，创建`ESTest_Doc_Query.java`
 
 
 
