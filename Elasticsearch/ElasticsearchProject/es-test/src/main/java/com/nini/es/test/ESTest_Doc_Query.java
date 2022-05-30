@@ -1,11 +1,16 @@
 package com.nini.es.test;
 
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import java.io.IOException;
 
@@ -15,17 +20,26 @@ public class ESTest_Doc_Query {
         RestHighLevelClient esClient = new RestHighLevelClient(
                 RestClient.builder(new HttpHost("localhost", 9200, "http"))
         );
-        // 2.创建请求体(数据查询请求)
-        GetRequest request = new GetRequest();
-        request.index("user").id("1001"); // 指定查询的索引和id
+        // 2.创建请求体(数据全量查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
 
-        // 3、向ES查询数据并得到返回的响应信息
-        GetResponse response = esClient.get(request, RequestOptions.DEFAULT);
+        // 3.构造查询条件(查询索引中全部的数据)
+        SearchSourceBuilder builder = new SearchSourceBuilder().query(QueryBuilders.matchAllQuery());
+        request.source(builder);
 
-        // 4、此时可以查看返回的响应信息
-        System.out.println(response.getSourceAsString());
+        // 4、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
 
-        // 5、最后关闭es客户端
+        // 5、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+
+        // 6、最后关闭es客户端
         esClient.close();
     }
 }

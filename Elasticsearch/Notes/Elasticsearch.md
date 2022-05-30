@@ -1115,7 +1115,70 @@ public class ESTest_Doc_Insert_Batch {
 }
 ```
 
-然后再ES服务启动的条件下，创建`ESTest_Doc_Query.java`
+然后在ES服务启动的条件下，创建`ESTest_Doc_Query.java`并运行：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据全量查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造查询条件(查询索引中全部的数据)
+        SearchSourceBuilder builder = new SearchSourceBuilder().query(QueryBuilders.matchAllQuery());
+        request.source(builder);
+
+        // 4、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 5、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行结果如下：
+
+```java
+6 hits
+54ms
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+{"name":"王五","age":40,"sex":"男"}
+{"name":"王五1","age":40,"sex":"女"}
+{"name":"王五2","age":50,"sex":"男"}
+{"name":"王五3","age":50,"sex":"男"}
+
+Process finished with exit code 0
+```
 
 
 
