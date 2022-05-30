@@ -1014,7 +1014,7 @@ Process finished with exit code 0
 
 #### 3）查询文档
 
-> 查询单条数据
+> ① 查询单条数据
 
 在ES服务启动的情况下(IDEA终端ES的bin目录下输入`./elasticsearch`)，创建查询文档数据的类`ESTest_Doc_Get.java`并运行，从而查看`user`索引下`1001`id的数据：
 
@@ -1065,7 +1065,7 @@ Process finished with exit code 0
 
 
 
-> 全量查询：查询全部数据
+> ② 全量查询：查询全部数据
 
 首先批量创建一些数据，用于之后的查询：
 
@@ -1146,14 +1146,14 @@ public class ESTest_Doc_Query {
 
         // 3.构造查询条件(查询索引中全部的数据)
         SearchSourceBuilder builder = new SearchSourceBuilder().query(QueryBuilders.matchAllQuery());
-        request.source(builder);
+        request.source(builder); // source()方法中的参数是查询条件
 
         // 4、向ES查询数据并得到返回的响应信息（search方法）
         SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
 
         // 5、此时可以查看返回的响应信息
         SearchHits hits = response.getHits();
-        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(hits.getTotalHits()); //查看一共有多少条查询条数
         System.out.println(response.getTook());  //查看查询时间
         for(SearchHit hit: hits){                //查看每一条数据
             System.out.println(hit.getSourceAsString());
@@ -1179,6 +1179,320 @@ public class ESTest_Doc_Query {
 
 Process finished with exit code 0
 ```
+
+
+
+> ③ 条件查询
+
+在ES服务启动的条件下，创建`ESTest_Doc_Query_Condition.java`进行条件查询：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_Condition {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据条件查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造查询条件(查询索引中指定条件的数据)
+        SearchSourceBuilder builder = new SearchSourceBuilder()
+                .query(QueryBuilders.termQuery("age",30)); //【查询年龄等于30的数据】
+        request.source(builder);   // 【source()方法中的参数是查询条件】
+
+        // 4、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 5、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看一共有多少条查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+查询年龄等于30岁的数据记录，运行程序得到的结果：
+
+```java
+2 hits
+3ms
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+
+Process finished with exit code 0
+```
+
+
+
+> ④ 分页查询
+
+**分页公式：**
+
+- 页面起始数计算公式：`(当前页码 - 1) × 每页显示的数据条数`
+
+  当前页码从1开始
+
+  如:
+
+  第一页的起始为：(1-1)*2=0
+
+  第二页的起始为：(2-1)*2=2
+
+  第n页的起始为：(n-1)*2
+
+
+
+**实例演示：**
+
+在ES服务启动的条件下，创建`ESTest_Doc_Query_pages.java`进行分页查询（获取查询结果中的部分数据进行显示）：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_pages {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造查询条件(查询索引中全部的数据)
+        SearchSourceBuilder builder = new SearchSourceBuilder()
+                .query(QueryBuilders.matchAllQuery()); //查询全部的数据
+        builder.from(0);           // 页面的起始
+        builder.size(2);           // 每一页的数据条数
+        request.source(builder);   // source()方法中的参数是查询条件
+
+        // 4、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 5、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();  
+        System.out.println(hits.getTotalHits()); //查看一共有多少个查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行后的分页查询结果如下，下面展示了第1页的两条数据：
+
+```java
+6 hits
+4ms
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+
+Process finished with exit code 0
+
+===============备注：全部数据如下=================
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+{"name":"王五","age":40,"sex":"男"}
+{"name":"王五1","age":40,"sex":"女"}
+{"name":"王五2","age":50,"sex":"男"}
+{"name":"王五3","age":50,"sex":"男"}
+```
+
+
+
+> ⑤ 查询结果排序
+
+在ES服务启动的情况下，创建`ESTest_Doc_Query_order.java`对查询结果按照某个规则或字段进行排序：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_order {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造查询条件(查询索引中全部的数据，然后再排序)
+        SearchSourceBuilder builder = new SearchSourceBuilder()
+                .query(QueryBuilders.matchAllQuery()); //查询全部的数据
+        builder.sort("age", SortOrder.ASC);  // 对age字段进行排序，ASC是按升序排序，DESC是降序排序
+        request.source(builder);   // source()方法中的参数是查询条件
+
+        // 4、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 5、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条排序后的数据
+            System.out.println(hit.getSourceAsString());
+        }
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行结果如下，所有数据对age字段按照升序排序：
+
+```java
+6 hits
+30ms
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+{"name":"王五","age":40,"sex":"男"}
+{"name":"王五1","age":40,"sex":"女"}
+{"name":"王五2","age":50,"sex":"男"}
+{"name":"王五3","age":50,"sex":"男"}
+
+Process finished with exit code 0
+```
+
+
+
+> ⑥ 对查询结果进行过滤
+
+如果想要使运行结果中只显示部分指定的字段，可以使用`xxx.fetchSource(includes, excludes)`方法进行字段过滤。查看源码可知，这个方法多次覆写，可以有不同的参数组合，可根据需求自己选择。
+
+
+
+在ES服务启动的情况下，创建`ESTest_Doc_Query_filter.java`对查询结果按照某个规则或字段进行排序：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_filter {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造查询条件(先查询索引中全部的数据，然后再进行字段的显示过滤)
+        SearchSourceBuilder builder = new SearchSourceBuilder()
+                .query(QueryBuilders.matchAllQuery()); //查询全部的数据
+        String[] excludes = {};        // 结果中不需要包含的字段组
+        String[] includes = {"name"};  // 结果中需要包含name字段
+        builder.fetchSource(includes, excludes); // 这个方法可以有若干个参数，查看源码：参数includes表示包含, 参数excludes表示排除
+        request.source(builder);       // source()方法中的参数是查询条件
+
+        // 4、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 5、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行结果如下，显示的字段只有name：
+
+```java
+6 hits
+2ms
+{"name":"张三"}
+{"name":"李四"}
+{"name":"王五"}
+{"name":"王五1"}
+{"name":"王五2"}
+{"name":"王五3"}
+
+Process finished with exit code 0
+=============完整的数据如下============
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+{"name":"王五","age":40,"sex":"男"}
+{"name":"王五1","age":40,"sex":"女"}
+{"name":"王五2","age":50,"sex":"男"}
+{"name":"王五3","age":50,"sex":"男"}
+```
+
+
 
 
 
