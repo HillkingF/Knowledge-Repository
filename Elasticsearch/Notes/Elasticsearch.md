@@ -1494,7 +1494,155 @@ Process finished with exit code 0
 
 
 
+> ⑦ 组合条件的查询
 
+即：多个条件组合进行查询
+
+
+
+在ES服务启动的情况下，创建`ESTest_Doc_Query_zuhe.java`进行多个条件（age等于30并且sex为男）的组合查询：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_zuhe {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造查询条件(must() should() 等进行多个条件的逻辑判断)
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery(); //这个对象用于进行条件组合
+        boolQueryBuilder.must(QueryBuilders.matchQuery("age",30));  // must()方法表示多个条件必须满足xxx, mustnot()表示必须不满足xxx，......
+        boolQueryBuilder.must(QueryBuilders.matchQuery("sex","男")); // 性别必须为男
+        builder.query(boolQueryBuilder); //查询到的结果中必须保证age等于30，sex为男
+
+        // 4.将查询条件放入请求体中进行查询
+        request.source(builder);   // source()方法中的参数是查询条件
+
+        // 5、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 6、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行结果如下：
+
+```java
+1 hits
+75ms
+{"name":"张三","age":30,"sex":"男"}
+
+Process finished with exit code 0
+```
+
+
+
+> ⑧ 范围查询
+
+在ES服务启动的情况下，创建`ESTest_Doc_Query_zuhe.java`查询30≤age≤40的记录：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_field {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造范围查询条件：rangeQuery(字段)，gte()和lte()等确定范围
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        RangeQueryBuilder rangeBuilder = QueryBuilders.rangeQuery("age"); //rangeQuery("age")查询范围
+        rangeBuilder.gte(30);  // age大于等于30
+        rangeBuilder.lte(40);  // age小于等于40
+        builder.query(rangeBuilder); //查询到的结果中必须保证age≥30且≤40
+
+        // 4.将查询条件放入请求体中进行查询
+        request.source(builder);   // source()方法中的参数是查询条件
+
+        // 5、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 6、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行后的查询结果如下：
+
+```java
+4 hits
+9ms
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+{"name":"王五","age":40,"sex":"男"}
+{"name":"王五1","age":40,"sex":"女"}
+
+Process finished with exit code 0
+```
+
+
+
+> ⑨ 模糊查询
 
 
 
