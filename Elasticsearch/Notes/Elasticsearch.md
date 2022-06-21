@@ -1644,6 +1644,158 @@ Process finished with exit code 0
 
 > ⑨ 模糊查询
 
+在ES服务启动的情况下，创建`ESTest_Doc_Query_mohu.java`查询`name`与`wangwu`相差一个或两个字符的记录：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.Fuzziness;
+import org.elasticsearch.index.query.FuzzyQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_mohu {
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造模糊查询条件：fuzzyQuery(字段，模糊值)，fuzziness(Fuzziness.ONE)表示可以与模糊值相差一个字符
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        FuzzyQueryBuilder fuzziness = QueryBuilders.fuzzyQuery("name", "王五").fuzziness(Fuzziness.ONE);
+        builder.query(fuzziness);  //放入模糊查询条件
+
+        // 4.将查询条件放入请求体中进行查询
+        request.source(builder);   // source()方法中的参数是查询条件
+        // 5、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 6、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+运行后查询结果如下。结果中与模糊值“王五”相差一个字符的记录也全都查询出来了：
+
+```java
+4 hits
+16ms
+{"name":"王五","age":40,"sex":"男"}
+{"name":"王五1","age":40,"sex":"女"}
+{"name":"王五2","age":50,"sex":"男"}
+{"name":"王五3","age":50,"sex":"男"}
+
+Process finished with exit code 0
+```
+
+
+
+> ⑩ 高亮查询 
+
+解释：对查询的结果进行高亮显示
+
+在ES服务启动的情况下，创建`ESTest_Doc_Query_highlight.java`对查询结果中字段age进行高亮显示：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.Fuzziness;
+import org.elasticsearch.index.query.FuzzyQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermsQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_highlight {
+
+    private static HighlightBuilder highlightBuilder;
+
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造高亮查询条件并放入构造器中
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        TermsQueryBuilder termsQueryBuilder = QueryBuilders.termsQuery("age", "30");
+        // 高亮一般以标签形式显示
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        highlightBuilder.preTags("<font color='red'>"); // 标签前半部分的内容
+        highlightBuilder.postTags("</font>");           // 标签后半部分内容
+        highlightBuilder.field("age");                  // 需要高亮的内容
+        builder.highlighter(highlightBuilder);          // 将高亮标签放入构造器中
+        builder.query(termsQueryBuilder);               // 将查询条件放入构造器中
+
+        // 4.将查询条件放入请求体中进行查询
+        request.source(builder);   // source()方法中的参数是查询条件
+        // 5、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 6、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+IDEA运行结果如下。在网页中字段age的内容会高亮显示：
+
+```java
+2 hits
+11ms
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+
+Process finished with exit code 0
+```
+
+
+
+
+
 
 
 #### 4）删除文档
