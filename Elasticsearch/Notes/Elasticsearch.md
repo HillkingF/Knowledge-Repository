@@ -158,9 +158,11 @@ Fields：类似于列
 
 
 
-## 第3章 索引操作-HTTP
+## 第3章 ES之HTTP操作
 
-### 3.1 创建索引
+### 3.1 索引操作
+
+#### 3.1.1 创建索引
 
 对比关系型数据库，创建索引就等同于创建数据库。
 
@@ -172,7 +174,7 @@ Fields：类似于列
 
 
 
-### 3.2 查看索引信息
+#### 3.1.2 查看索引信息
 
 经过上面的步骤就创建好了一个索引，下面查看：
 
@@ -205,7 +207,7 @@ Fields：类似于列
 
 
 
-### 3.3 删除索引
+#### 3.1.3 删除索引
 
 - 使用**DELETE方法**来删除索引
 
@@ -213,9 +215,9 @@ Fields：类似于列
 
 
 
-## 第4章 文档操作-HTTP
+### 3.2 文档操作
 
-### 4.1 创建文档(增)
+#### 3.2.1 创建文档(增)
 
 在上一小节中已经创建好了索引，接下来创建文档并添加数据。这里的文档可以类比为关系型数据库中的表数据，添加的数据格式为JSON格式。步骤如下：
 
@@ -250,9 +252,9 @@ Fields：类似于列
 
   <img src="img/10.png" alt="img" style="zoom:67%;" />
 
-### 4.2 查询文档(查)
+#### 3.2.2 查询文档(查)
 
-#### 1）"主键"查询
+##### 1）"主键"查询
 
 使用**GET方法**来查询文档，URL中`_doc`表示文档数据，`/1001`表示文档ID。查询结果中`found:`表示是否查询到结果。
 
@@ -266,7 +268,7 @@ Fields：类似于列
 
 
 
-#### 2）全部查询
+##### 2）全部查询
 
 > 两种操作的查询方式
 
@@ -293,7 +295,7 @@ Fields：类似于列
 
 
 
-#### 3）条件查询
+##### 3）条件查询
 
 > 介绍两种条件查询方法
 
@@ -318,7 +320,7 @@ Fields：类似于列
 
 
 
-#### 4）分页查询
+##### 4）分页查询
 
 使用`GET`方法，url`_search`：
 
@@ -332,7 +334,7 @@ Fields：类似于列
 
 
 
-#### 5）多条件组合查询
+##### 5）多条件组合查询
 
 将多个条件组合在一起查询时，请求体应该怎么写？
 
@@ -416,7 +418,7 @@ Fields：类似于列
 
 
 
-#### 6）模糊查询和精确查询
+##### 6）模糊查询和精确查询
 
 `match`可以使用模糊的文字进行全文检索，`match_phrase`将值看做一个整体进行精确查询。
 
@@ -445,7 +447,7 @@ Fields：类似于列
 
 
 
-#### 7）高亮查询结果
+##### 7）高亮查询结果
 
 使用`highlight`+`fields`来高亮查询字段。
 
@@ -455,7 +457,7 @@ Fields：类似于列
 
 
 
-#### 8）分析或分组查询结果
+##### 8）分析或分组查询结果
 
 对查询结果进行分析(求和、均值等)或分组，要修改请求体。
 
@@ -465,7 +467,7 @@ Fields：类似于列
 
 
 
-#### 9）映射关系
+##### 9）映射关系
 
 **引出问题：**
 
@@ -518,7 +520,7 @@ ES中有映射的概念，
 
 
 
-### 4.3 修改文档(改)
+#### 3.2.3 修改文档(改)
 
 数据创建成功后想修改应该如何处理？分为两种情况：完全覆盖性修改(全量数据更新)和局部性修改
 
@@ -546,7 +548,7 @@ ES中有映射的概念，
 
 
 
-### 4.4 删除文档(删)
+#### 3.2.4 删除文档(删)
 
 删除文档使用`delete`方法。
 
@@ -568,9 +570,9 @@ ES中有映射的概念，
 
 
 
-## 第5章 ES之JavaAPI
+## 第4章 ES之JavaAPI
 
-### 5.1 Elasticsearch环境准备
+### 4.1 Elasticsearch-IDEA环境准备
 
 ES软件是由Java语言开发的，所以也可以通过JavaAPI的方式对ES服务进行访问。
 
@@ -662,7 +664,7 @@ Process finished with exit code 0
 
 
 
-### 5.2 索引操作
+### 4.2 索引操作
 
 #### 1）创建索引
 
@@ -812,7 +814,7 @@ Process finished with exit code 0
 
 
 
-### 5.3 文档操作
+### 4.3 文档操作
 
 #### 1）插入文档
 
@@ -1794,6 +1796,167 @@ Process finished with exit code 0
 
 
 
+> 11.最大值查询
+
+在ES服务启动的情况下，创建`ESTest_Doc_Query_maxnum.java`对查询结果中字段age进行最大值查询：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermsQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.metrics.MaxAggregationBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_maxnum {
+
+    private static HighlightBuilder highlightBuilder;
+
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造最大值查询条件并放入构造器中.max("maxage")定义查询结果的名字，field("age")说明需要进行最大值查询的字段
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        AggregationBuilder aggregationBuilder = AggregationBuilders.max("maxage").field("age");
+        builder.aggregation(aggregationBuilder);               // 将聚合查询条件放入构造器中
+
+        // 4.将查询条件放入请求体中进行查询
+        request.source(builder);   // source()方法中的参数是查询条件
+        // 5、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 6、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+IDEA运行结果如下：
+
+```java
+6 hits
+1ms
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+{"name":"王五","age":40,"sex":"男"}
+{"name":"王五1","age":40,"sex":"女"}
+{"name":"王五2","age":50,"sex":"男"}
+{"name":"王五3","age":50,"sex":"男"}
+
+Process finished with exit code 0
+```
+
+视频中的运行结果更完整一些,查询到了age最大值记录：
+
+![img](img/32.png)
+
+
+
+
+
+> 12.分组查询
+
+在ES服务启动的情况下，创建`ESTest_Doc_Query_group.java`对查询结果中字段age的值进行分组，值相同的在一组：
+
+```java
+package com.nini.es.test;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+
+import java.io.IOException;
+
+public class ESTest_Doc_Query_group {
+
+    private static HighlightBuilder highlightBuilder;
+
+    public static void main(String[] args) throws IOException {
+        // 1.创建ES客户端: 传入ip、port、http方式
+        RestHighLevelClient esClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"))
+        );
+        // 2.创建请求体(数据查询请求)
+        SearchRequest request = new SearchRequest();
+        request.indices("user"); // 指定查询的索引
+
+        // 3.构造分组查询条件并放入构造器中. terms("ageGroup")定义分组查询结果名字. field("age")说明需要分组的字段;
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        AggregationBuilder aggregationBuilder = AggregationBuilders.terms("ageGroup").field("age");
+        builder.aggregation(aggregationBuilder);               // 将聚合查询条件放入构造器中
+
+        // 4.将查询条件放入请求体中进行查询
+        request.source(builder);   // source()方法中的参数是查询条件
+        // 5、向ES查询数据并得到返回的响应信息（search方法）
+        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+
+        // 6、此时可以查看返回的响应信息
+        SearchHits hits = response.getHits();
+        System.out.println(hits.getTotalHits()); //查看查询条数
+        System.out.println(response.getTook());  //查看查询时间
+        for(SearchHit hit: hits){                //查看每一条数据
+            System.out.println(hit.getSourceAsString());
+        }
+        // 6、最后关闭es客户端
+        esClient.close();
+    }
+}
+```
+
+IDEA运行结果如下：
+
+```java
+6 hits
+25ms
+{"name":"张三","age":30,"sex":"男"}
+{"name":"李四","age":30,"sex":"女"}
+{"name":"王五","age":40,"sex":"男"}
+{"name":"王五1","age":40,"sex":"女"}
+{"name":"王五2","age":50,"sex":"男"}
+{"name":"王五3","age":50,"sex":"男"}
+
+Process finished with exit code 0
+```
+
+视频中的结果更完整一些。运行结果明确说明了每组相同值对应的记录有几条：
+
+![img](img/33.png)
+
 
 
 
@@ -1906,6 +2069,16 @@ Process finished with exit code 0
 ```
 
 
+
+
+
+## 第5章 Elasticsearch环境
+
+### 5.1 相关概念
+
+> 单机 & 集群
+
+单台ES服务器提供服务
 
 
 
