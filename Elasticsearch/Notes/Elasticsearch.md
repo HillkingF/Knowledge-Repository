@@ -1796,7 +1796,7 @@ Process finished with exit code 0
 
 
 
-> 11.最大值查询
+> 11.聚合查询之最大值查询
 
 在ES服务启动的情况下，创建`ESTest_Doc_Query_maxnum.java`对查询结果中字段age进行最大值查询：
 
@@ -1880,7 +1880,7 @@ Process finished with exit code 0
 
 
 
-> 12.分组查询
+> 12.聚合查询之分组查询
 
 在ES服务启动的情况下，创建`ESTest_Doc_Query_group.java`对查询结果中字段age的值进行分组，值相同的在一组：
 
