@@ -2152,6 +2152,55 @@ Process finished with exit code 0
 
 ![](img/47.png)
 
+![](img/48.png)
+
+
+
+### 5.4 Linux集群
+
+#### 1) 软件下载
+
+软件下载地址：https://www.elastic.co/cn/downloads/past-releases/elasticsearch-7-8-0
+
+- 下载：点击`LINUX X86_64` 链接得到`elasticsearch-7.8.0-linux-x86_64.tar.gz`
+
+- 将`.tar.gz`上传到服务器中，并进行解压+改名
+
+  ```bash
+  # 将压缩包解压缩到特定的目录下：/home/app/elasticsearch
+  [root@VM-24-12-centos app]# tar -zxvf elasticsearch-7.8.0-linux-x86_64.tar.gz -C /home/app/elasticsearch
+  
+  [root@VM-24-12-centos app]# cd elasticsearch
+  
+  # 改名:将解压缩后的elasticsearch-7.8.0改名为es-cluster
+  [root@VM-24-12-centos elasticsearch]# mv elasticsearch-7.8.0 es-cluster
+  ```
+
+- 将软件分发到其他节点Linux2，Linux3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### 2) 软件安装
+
+
+
+
+
+
+
+
+
 
 
 
