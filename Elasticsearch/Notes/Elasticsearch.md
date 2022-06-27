@@ -2180,32 +2180,11 @@ Process finished with exit code 0
 
 
 
+**学到了第32个视频：集群**
+
+https://www.gulixueyuan.com/course/434/task/18845/show
 
 
-
-
-
-
-
-
-
-
-
-#### 2) 软件安装
-
-
-
-
-
-
-
-
-
-
-
-
-
-/Users/hillking/Environment/Elasticsearch/elasticsearch-7.8.0/bin
 
 
 
