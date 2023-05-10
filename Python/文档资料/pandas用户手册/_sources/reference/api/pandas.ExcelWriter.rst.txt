@@ -1,0 +1,38 @@
+pandas.ExcelWriter
+==================
+
+.. currentmodule:: pandas
+
+.. autoclass:: ExcelWriter
+
+   
+
+
+..
+   HACK -- the point here is that we don't want this to appear in the output, but the autosummary should still generate the pages.
+   .. autosummary::
+      :toctree:
+      
+      ExcelWriter.check_extension
+      ExcelWriter.close
+
+
+
+
+   
+
+
+..
+   HACK -- the point here is that we don't want this to appear in the output, but the autosummary should still generate the pages.
+   .. autosummary::
+      :toctree:
+      
+      ExcelWriter.book
+      ExcelWriter.date_format
+      ExcelWriter.datetime_format
+      ExcelWriter.engine
+      ExcelWriter.if_sheet_exists
+      ExcelWriter.sheets
+      ExcelWriter.supported_extensions
+
+
