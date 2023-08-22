@@ -1,0 +1,9 @@
+units.py 中是一些公共的代码、密钥等，直接被其他文件调用
+
+0-basic目录：目录中是一些基本的用法
+1-generic_func目录: 目录中是一些通用的模块，稍微高阶一点
+
+
+官方文档：
+https://python.langchain.com/en/latest/modules/models/llms/examples/token_usage_tracking.html
+
